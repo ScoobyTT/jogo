@@ -1,0 +1,41 @@
+#include <iostream>
+using namespace std;
+
+struct Jogador {
+    string nome;
+    int vida;
+    int energia;
+};
+struct nodo{
+    Jogador jogador;
+    nodo* dir;
+    nodo* esq;
+};
+struct arvore{
+    nodo* raiz;
+};  
+
+int main(){
+    int op;
+    while(true){
+     cout<<"...... JOGO DE AVENTURA...../n"
+        << "ESCOLHA UMA OPCAO: ";
+        << "1 - Iniciar o jogo/n"
+        << "0 - Encerrar o jogo/n"
+        << "I - Conhecer a hitória do jogo"
+        << "R - Regras do jogo"
+        << "V verificar seu score no jogo/n"
+        << "E - Sair do jogo/n"
+        << "DIGITE A OPCAO DESEJADA: ";
+        cin>>op;
+        switch(op){
+            case 1:
+                
+
+    }
+    
+    arvore arv;
+    arv.raiz = NULL;
+    return 0;
+ }
+}
