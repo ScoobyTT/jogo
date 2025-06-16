@@ -1,41 +1,103 @@
+#ifndef JOGO_H
+#define JOGO_H
 #include <iostream>
-#include "jogo.h"
+#include "decisao.h"
+#include "redo_system.h"
 
-int main() {
-    // Criando as decisões do jogo
-    Decisao* fim = new Decisao();
-    fim->texto = "Você encontrou o tesouro! Parabéns!";
-    fim->resultado = "Você ganhou o jogo!";
-    fim->opcao1 = nullptr;
-    fim->opcao2 = nullptr;
+class Jogo {
+private:
+    Jogador jogador;
+    Decisao* decisaoAtual;  // Decisão atual do jogador
+    RedoSystem sistemaRedo; // Sistema de redo para registrar ações
+    
+    // Função auxiliar para mostrar a decisão atual
+    void mostrarDecisaoAtual() const {
+        std::cout << "\n" << decisaoAtual->texto << std::endl;
+        std::cout << "\nESCOLHAS:" << std::endl;
+        std::cout << "1 - " << decisaoAtual->opcao1->texto << std::endl;
+        std::cout << "2 - " << decisaoAtual->opcao2->texto << std::endl;
+    }
+    
+    // Função auxiliar para processar a escolha do jogador
+    void processarEscolha(int escolha) {
+        if (escolha == 1) {
+            // Registrar ação no sistema de redo
+            sistemaRedo.registrarAcao("Escolheu opção 1: " + decisaoAtual->opcao1->texto);
+            decisaoAtual = decisaoAtual->opcao1;
+        } else if (escolha == 2) {
+            // Registrar ação no sistema de redo
+            sistemaRedo.registrarAcao("Escolheu opção 2: " + decisaoAtual->opcao2->texto);
+            decisaoAtual = decisaoAtual->opcao2;
+        } else {
+            std::cout << "Escolha inválida! Tente novamente." << std::endl;
+        }
+    }
+    
+public:
+    Jogo() : jogador(), decisaoAtual(nullptr), sistemaRedo(10) {} // Limite de 10 ações no redo
+    
+    // Inicializa o jogo com o primeiro nó
+    void iniciarJogo(Decisao* inicio) {
+        decisaoAtual = inicio;
+        // Registrar início do jogo
+        sistemaRedo.registrarAcao("Início do jogo");
+        std::cout << "Bem-vindo ao Jogo de Aventura!" << std::endl;
+        std::cout << "Digite seu nome: ";
+        std::cin >> jogador.nome;
+    }
 
-    // Criando uma decisão intermediária
-    Decisao* decisao2 = new Decisao();
-    decisao2->texto = "Você chegou a uma encruzilhada."
-                     "\n1 - Ir para a esquerda"
-                     "\n2 - Ir para a direita";
-    decisao2->resultado = "Você seguiu pela direita e encontrou o tesouro!";
-    decisao2->opcao1 = nullptr;
-    decisao2->opcao2 = fim;
+    // Mostra o histórico de ações disponíveis para redo
+    void mostrarHistoricoRedo() const {
+        std::cout << "\nHistórico de Ações (" << sistemaRedo.getAcoesDisponiveis() << " disponíveis):" << std::endl;
+        if (sistemaRedo.temAcoesDisponiveis()) {
+            std::cout << "- " << sistemaRedo.peek() << " (última ação)" << std::endl;
+        } else {
+            std::cout << "Nenhuma ação disponível para redo" << std::endl;
+        }
+    }
 
-    // Criando a decisão inicial
-    Decisao* inicio = new Decisao();
-    inicio->texto = "Você está em uma floresta escura."
-                   "\n1 - Explorar a floresta"
-                   "\n2 - Seguir pelo caminho principal";
-    inicio->resultado = "Você seguiu pelo caminho principal e chegou a uma encruzilhada.";
-    inicio->opcao1 = nullptr;
-    inicio->opcao2 = decisao2;
+    // Executa o redo da última ação
+    void executarRedo() {
+        if (sistemaRedo.temAcoesDisponiveis()) {
+            std::cout << "\nRefazendo ação: " << sistemaRedo.redo() << std::endl;
+            // Aqui você poderia implementar a lógica específica para refazer a ação
+        } else {
+            std::cout << "Nenhuma ação disponível para redo" << std::endl;
+        }
+    }
 
-    // Criando o jogo
-    Jogo jogo;
-    jogo.iniciarJogo(inicio);
-    jogo.jogar();
+    // Limpa todo o histórico de ações
+    void limparHistorico() {
+        sistemaRedo.limparHistorico();
+        std::cout << "Histórico de ações limpo!" << std::endl;
+    }
 
-    // Liberando a memória
-    delete fim;
-    delete decisao2;
-    delete inicio;
+    // Verifica se há ações disponíveis para redo
+    bool temRedoDisponivel() const {
+        return sistemaRedo.temAcoesDisponiveis();
+    }
+        jogador.vida = 100;
+        jogador.energia = 100;
+    }
+    
+    // Função principal para jogar
+    void jogar() {
+        while (decisaoAtual != nullptr) {
+            mostrarDecisaoAtual();
+            int escolha;
+            std::cout << "\nDigite sua escolha (1 ou 2): ";
+            std::cin >> escolha;
+            
+            // Processa a escolha e aplica os efeitos
+            processarEscolha(escolha);
+            if (decisaoAtual != nullptr) {
+                decisaoAtual->aplicarEfeitos(jogador);
+                std::cout << "\n" << decisaoAtual->resultado << std::endl;
+                std::cout << "Vida: " << jogador.vida << ", Energia: " << jogador.energia << std::endl;
+            }
+        }
+        std::cout << "\nFim do jogo!" << std::endl;
+    }
+};
 
-    return 0;
-}
+#endif // JOGO_H
