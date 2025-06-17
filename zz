@@ -1,101 +1,188 @@
+// JOGO-ED1 - Uma Aventura com Árvores de Decisão
+// Trabalho Final - Estrutura de Dados I - UNEB
+// Desenvolvido por: Christian Amós e parceiro
+
 #include <iostream>
 #include <string>
+using namespace std;
 
-class No {
+// =================== STRUCT DA ÁRVORE ===================
+struct NoArvore {
+    string historia;
+    NoArvore* esquerda;
+    NoArvore* direita;
+
+    NoArvore(string texto) : historia(texto), esquerda(nullptr), direita(nullptr) {}
+};
+
+// =================== STRUCT DA LISTA DUPLAMENTE ENCADEADA ===================
+struct Jogador {
+    string nome;
+    int vitorias;
+    int derrotas;
+    int total;
+    Jogador* ant;
+    Jogador* prox;
+};
+
+class ListaJogadores {
 private:
-    std::string historia;
-    No* decisao_esquerda;
-    No* decisao_direita;
+    Jogador* inicio;
 
 public:
-    // Construtor
-    No(std::string texto) {
-        historia = texto;
-        decisao_esquerda = nullptr;
-        decisao_direita = nullptr;
+    ListaJogadores() : inicio(nullptr) {}
+
+    void inserir(string nome, int v, int d) {
+        Jogador* novo = new Jogador{nome, v, d, v + d, nullptr, nullptr};
+        if (!inicio) {
+            inicio = novo;
+        } else {
+            Jogador* atual = inicio;
+            Jogador* anterior = nullptr;
+            while (atual && v < atual->vitorias) {
+                anterior = atual;
+                atual = atual->prox;
+            }
+            if (!anterior) {
+                novo->prox = inicio;
+                inicio->ant = novo;
+                inicio = novo;
+            } else {
+                novo->prox = atual;
+                novo->ant = anterior;
+                anterior->prox = novo;
+                if (atual) atual->ant = novo;
+            }
+        }
     }
 
-    // Métodos para configurar as decisões
-    void setDecisaoEsquerda(No* no) {
-        decisao_esquerda = no;
-    }
-
-    void setDecisaoDireita(No* no) {
-        decisao_direita = no;
-    }
-
-    // Método para liberar memória
-    ~No() {
-        delete decisao_esquerda;
-        delete decisao_direita;
-    }
-
-    // Métodos para acessar os dados
-    std::string getHistoria() const {
-        return historia;
-    }
-
-    No* getDecisaoEsquerda() const {
-        return decisao_esquerda;
-    }
-
-    No* getDecisaoDireita() const {
-        return decisao_direita;
+    void mostrar() {
+        Jogador* atual = inicio;
+        while (atual) {
+            cout << atual->nome << ": Jogos: " << atual->total
+                 << ", Ganhou: " << atual->vitorias << ", Perdeu: " << atual->derrotas << endl;
+            atual = atual->prox;
+        }
     }
 };
 
-// Função para criar a árvore
-No* criarArvore() {
-    // Nós finais
-    No* final1 = new No("Você encontrou o tesouro! Parabéns!");
-    No* final2 = new No("Você caiu no poço. Fim de jogo.");
-    No* final3 = new No("Você encontrou a saída segura. Vitória!");
+// =================== HISTÓRICO DO JOGO ===================
+struct Historico {
+    string historia;
+    Historico* prox;
+};
 
-    // Nós intermediários
-    No* escolha2 = new No("Você chega a uma encruzilhada. Deseja ir pela porta dourada ou prateada?");
-    escolha2->setDecisaoEsquerda(final1);
-    escolha2->setDecisaoDireita(final2);
+class ListaHistorico {
+private:
+    Historico* inicio;
 
-    No* escolha1 = new No("Você encontra uma caverna escura. Deseja explorar ou seguir em frente?");
-    escolha1->setDecisaoEsquerda(escolha2);
-    escolha1->setDecisaoDireita(final3);
+public:
+    ListaHistorico() : inicio(nullptr) {}
 
-    return escolha1;
-}
-
-// Função principal do jogo
-void jogar() {
-    No* no_atual = criarArvore();
-
-    while (true) {
-        std::cout << "\n" << no_atual->getHistoria() << std::endl;
-
-        if (no_atual->getDecisaoEsquerda() == nullptr && no_atual->getDecisaoDireita() == nullptr) {
-            std::cout << "\nFim do jogo!" << std::endl;
-            break;
-        }
-
-        int escolha;
-        std::cout << "\nDigite 1 para a primeira opção ou 2 para a segunda opção: ";
-        std::cin >> escolha;
-
-        if (escolha == 1 && no_atual->getDecisaoEsquerda() != nullptr) {
-            no_atual = no_atual->getDecisaoEsquerda();
-        }
-        else if (escolha == 2 && no_atual->getDecisaoDireita() != nullptr) {
-            no_atual = no_atual->getDecisaoDireita();
-        }
+    void inserir(string texto) {
+        Historico* novo = new Historico{texto, nullptr};
+        if (!inicio) inicio = novo;
         else {
-            std::cout << "Escolha inválida! Tente novamente." << std::endl;
+            Historico* atual = inicio;
+            while (atual->prox) atual = atual->prox;
+            atual->prox = novo;
         }
     }
 
-    // Limpa a memória
-    delete no_atual;
+    void mostrar() {
+        Historico* atual = inicio;
+        while (atual) {
+            cout << atual->historia << endl;
+            atual = atual->prox;
+        }
+    }
+};
+
+// =================== FUNÇÃO DE CRIAÇÃO DA ÁRVORE ===================
+NoArvore* criarArvore() {
+    NoArvore* raiz = new NoArvore("Você está numa Floresta, caminha para o Leste?");
+
+    raiz->esquerda = new NoArvore("Segue uma voz misteriosa?");
+    raiz->direita = new NoArvore("Encontra um rio, cruza o rio?");
+
+    raiz->direita->esquerda = new NoArvore("Fim, não conseguiu atravessar o rio");
+    raiz->direita->direita = new NoArvore("Encontra uma cabana, entra?");
+    raiz->direita->direita->direita = new NoArvore("Fim, chegou à civilização");
+
+    return raiz;
 }
 
+// =================== MENU PRINCIPAL ===================
+void menuPrincipal() {
+    cout << "===== JOGO-ED1: Uma Aventura com Árvores de Decisão =====" << endl;
+    cout << "1. Conhecer a História do Jogo" << endl;
+    cout << "2. Regras do Jogo" << endl;
+    cout << "3. Jogar" << endl;
+    cout << "4. Verificar o Score" << endl;
+    cout << "5. Sair" << endl;
+    cout << "Escolha uma opção: ";
+}
+
+void menuTecnico() {
+    cout << "===== MENU INFORMAÇÕES TÉCNICAS =====" << endl;
+    cout << "1. Mostrar histórico de movimentos" << endl;
+    cout << "2. Voltar ao menu anterior" << endl;
+    cout << "Escolha uma opção: ";
+}
+
+// =================== FUNÇÃO PRINCIPAL ===================
 int main() {
-    std::cout << "Bem-vindo ao Jogo de Escolhas!" << std::endl;
-    jogar();
+    ListaJogadores score;
+    int opcao;
+    do {
+        menuPrincipal();
+        cin >> opcao;
+        cin.ignore();
+
+        if (opcao == 1) {
+            cout << "\nVocê será o protagonista de uma história interativa, onde suas escolhas definem o caminho." << endl;
+        } else if (opcao == 2) {
+            cout << "\nUse 1 para responder 'Sim' e 2 para 'Não' nas perguntas.\nSeu objetivo é chegar ao final positivo da história." << endl;
+        } else if (opcao == 3) {
+            string nome;
+            cout << "Digite seu nome: ";
+            getline(cin, nome);
+
+            NoArvore* raiz = criarArvore();
+            NoArvore* atual = raiz;
+            ListaHistorico hist;
+            int ganhou = 0;
+
+            while (atual->esquerda || atual->direita) {
+                cout << atual->historia << endl;
+                hist.inserir(atual->historia);
+                cout << "1 - Sim\n2 - Não\nEscolha: ";
+                int escolha;
+                cin >> escolha;
+                if (escolha == 1) atual = atual->esquerda;
+                else if (escolha == 2) atual = atual->direita;
+                else cout << "\nEscolha inválida.\n";
+            }
+
+            cout << atual->historia << endl;
+            hist.inserir(atual->historia);
+            if (atual->historia.find("chegou à civilização") != string::npos) ganhou = 1;
+
+            score.inserir(nome, ganhou, 1 - ganhou);
+
+            int sub;
+            do {
+                menuTecnico();
+                cin >> sub;
+                if (sub == 1) hist.mostrar();
+            } while (sub != 2);
+
+        } else if (opcao == 4) {
+            score.mostrar();
+        }
+
+    } while (opcao != 5);
+
+    cout << "Saindo do jogo. Obrigado por jogar!" << endl;
     return 0;
 }
