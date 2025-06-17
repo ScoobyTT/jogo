@@ -1,0 +1,101 @@
+#include <iostream>
+#include <string>
+
+class No {
+private:
+    std::string historia;
+    No* decisao_esquerda;
+    No* decisao_direita;
+
+public:
+    // Construtor
+    No(std::string texto) {
+        historia = texto;
+        decisao_esquerda = nullptr;
+        decisao_direita = nullptr;
+    }
+
+    // Métodos para configurar as decisões
+    void setDecisaoEsquerda(No* no) {
+        decisao_esquerda = no;
+    }
+
+    void setDecisaoDireita(No* no) {
+        decisao_direita = no;
+    }
+
+    // Método para liberar memória
+    ~No() {
+        delete decisao_esquerda;
+        delete decisao_direita;
+    }
+
+    // Métodos para acessar os dados
+    std::string getHistoria() const {
+        return historia;
+    }
+
+    No* getDecisaoEsquerda() const {
+        return decisao_esquerda;
+    }
+
+    No* getDecisaoDireita() const {
+        return decisao_direita;
+    }
+};
+
+// Função para criar a árvore
+No* criarArvore() {
+    // Nós finais
+    No* final1 = new No("Você encontrou o tesouro! Parabéns!");
+    No* final2 = new No("Você caiu no poço. Fim de jogo.");
+    No* final3 = new No("Você encontrou a saída segura. Vitória!");
+
+    // Nós intermediários
+    No* escolha2 = new No("Você chega a uma encruzilhada. Deseja ir pela porta dourada ou prateada?");
+    escolha2->setDecisaoEsquerda(final1);
+    escolha2->setDecisaoDireita(final2);
+
+    No* escolha1 = new No("Você encontra uma caverna escura. Deseja explorar ou seguir em frente?");
+    escolha1->setDecisaoEsquerda(escolha2);
+    escolha1->setDecisaoDireita(final3);
+
+    return escolha1;
+}
+
+// Função principal do jogo
+void jogar() {
+    No* no_atual = criarArvore();
+
+    while (true) {
+        std::cout << "\n" << no_atual->getHistoria() << std::endl;
+
+        if (no_atual->getDecisaoEsquerda() == nullptr && no_atual->getDecisaoDireita() == nullptr) {
+            std::cout << "\nFim do jogo!" << std::endl;
+            break;
+        }
+
+        int escolha;
+        std::cout << "\nDigite 1 para a primeira opção ou 2 para a segunda opção: ";
+        std::cin >> escolha;
+
+        if (escolha == 1 && no_atual->getDecisaoEsquerda() != nullptr) {
+            no_atual = no_atual->getDecisaoEsquerda();
+        }
+        else if (escolha == 2 && no_atual->getDecisaoDireita() != nullptr) {
+            no_atual = no_atual->getDecisaoDireita();
+        }
+        else {
+            std::cout << "Escolha inválida! Tente novamente." << std::endl;
+        }
+    }
+
+    // Limpa a memória
+    delete no_atual;
+}
+
+int main() {
+    std::cout << "Bem-vindo ao Jogo de Escolhas!" << std::endl;
+    jogar();
+    return 0;
+}
