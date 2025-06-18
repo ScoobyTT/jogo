@@ -1,0 +1,293 @@
+#include <stdio.h>
+
+using namespace std;
+
+
+
+struct nodo{
+
+    jogador player;
+
+    nodo *op1;
+
+    nodo *op2;
+
+};
+
+class arvore{
+
+    private:
+
+        nodo *raiz;
+
+    public:
+
+        arvore(): raiz(nullptr){}
+
+        void insere(jogador player){
+
+            if(raiz == nullptr) raiz = new nodo(player, nullptr, nullptr);
+
+            else{
+
+                raiz -> player = player;
+
+                raiz -> op1 = new nodo(player, nullptr, nullptr);
+
+                raiz -> op2 = new nodo(player, nullptr, nullptr);                
+
+            }
+
+            if(player > raiz->player)raiz->op2 = insere(player);
+
+            else raiz->op1 = insere(player);
+
+        }
+
+        void incrementaArvoreOp1(){
+
+            nodo *aux = raiz;
+
+            while(aux != nullptr){
+
+                aux = aux -> op1;
+
+            }
+
+        }
+
+        void incrementaArvoreOp2(){
+
+            nodo *aux = raiz;
+
+            while(aux != nullptr){
+
+                aux = aux -> op2;
+
+            }
+
+        }
+
+        void incrementaArvore(){
+
+            if(player > raiz->player)incrementaArvoreOp2();
+
+            else incrementaArvoreOp1();
+
+        }
+
+        
+
+        //void remove(jogador player){}
+
+        //void buscar(jogador player){}
+
+        /*void escolhaOp(){//nivel 1
+
+            cout<<"\n Escolha a opção de jogada\n"
+
+            <<"\n 1 - Para jogar\n"
+
+            <<"\n 2 - Para sair\n";
+
+            int op;
+
+            cin>>op;
+
+            switch(op){
+
+                case 1: incrementaArvoreOp1(); break;
+
+                case 2: incrementaArvoreOp2(); break;
+
+                default: cout<<"\n Opção invalida\n"; break;
+
+            }
+
+        }
+
+        void escolhaOp2(){//nivel 2
+
+            cout<<"\n Escolha a opção de jogada\n"
+
+            <<"\n 1 - Para jogar\n"
+
+            <<"\n 2 - Para sair\n";
+
+            int op;
+
+            cin>>op;
+
+            switch(op){
+
+                case 1: incrementaArvoreOp1(); break;
+
+                case 2: incrementaArvoreOp2(); break;
+
+                default: cout<<"\n Opção invalida\n"; break;
+
+            }
+
+        }
+
+        void escolhaOp3(){//nivel 3
+
+            cout<<"\n Escolha a opção de jogada\n"
+
+            <<"\n 1 - Para jogar\n"
+
+            <<"\n 2 - Para sair\n";
+
+            int op;
+
+            cin>>op;
+
+            switch(op){
+
+                case 1: incrementaArvoreOp1(); break;
+
+                case 2: incrementaArvoreOp2(); break;
+
+                default: cout<<"\n Opção invalida\n"; break;
+
+            }
+
+        }
+
+        void escolhaOp4(){//nivel 4
+
+            cout<<"\n Escolha a opção de jogada\n"
+
+            <<"\n 1 - Para jogar\n"
+
+            <<"\n 2 - Para sair\n";
+
+            int op;
+
+            cin>>op;
+
+            switch(op){
+
+                case 1: incrementaArvoreOp1(); break;
+
+                case 2: incrementaArvoreOp2(); break;
+
+                default: cout<<"\n Opção invalida\n"; break;
+
+            }
+
+        }
+
+        void escolhaOp5(){//nivel 5
+
+            cout<<"\n Escolha a opção de jogada\n"
+
+            <<"\n 1 - Para jogar\n"
+
+            <<"\n 2 - Para sair\n";
+
+            int op;
+
+            cin>>op;
+
+            switch(op){
+
+                case 1: incrementaArvoreOp1(); break;
+
+                case 2: incrementaArvoreOp2(); break;
+
+                default: cout<<"\n Opção invalida\n"; break;
+
+            }
+
+        }
+
+        void escolhaOp6(){//nivel 6
+
+            cout<<"\n Escolha a opção de jogada\n"
+
+            <<"\n 1 - Para jogar\n"
+
+            <<"\n 2 - Para sair\n";
+
+            int op;
+
+            cin>>op;
+
+            switch(op){
+
+                case 1: incrementaArvoreOp1(); break;
+
+                case 2: incrementaArvoreOp2(); break;
+
+                default: cout<<"\n Opção invalida\n"; break;
+
+            }
+
+        }
+
+        */  
+
+        void menuI(){
+
+         while(true){
+
+            int op;
+
+            cout<<"\n ..... JOGO DE AVENTURA .....\n"
+
+                <<"\n - Selecione as opções desejadas\n"
+
+                <<"\n 1 - Para Iniciar o jogo\n"
+
+                <<"\n 2 - Para Sair do jogo\n"
+
+                <<"\n 3 - Para ver as regras do jogo\n"
+
+                <<"\n 4 - Para ver a história do jogo\n"
+
+                <<"\n 5 - Para refazer a ultima ação\n"
+
+                <<"\n 6 - Para desfazer a ultima ação\n"
+
+                <<"\n 7 - Para voltar no inicio\n"
+
+                <<"\n 0 - Para sair do jogo\n";
+
+
+
+            cin>>op;
+
+            switch(op){
+
+                case 1: 
+
+                case 2: remove(); break;
+
+                case 3: buscar(); break;
+
+                case 4: return;
+
+            }
+
+        }
+
+        void menuF(){
+
+        int op;
+
+        while(true){
+
+            cout<<"\n"           
+
+        }
+
+        void remove(jogador player){}
+
+        ~arvore(){}
+
+}
+
+}
+
+}
