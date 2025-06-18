@@ -291,3 +291,26 @@ class arvore{
 }
 
 }
+/*typedef (abreviação de “type definition”) é um recurso de C/C++ que permite criar um nome alternativo para um tipo já existente. Usá-lo costuma trazer:
+
+Legibilidade
+• Nomes curtos e autoexplicativos tornam o código mais fácil de entender.
+• Ex.: typedef unsigned long ulong;
+Facilidade de manutenção
+• Se o tipo base mudar, basta alterar o typedef uma vez em vez de caçar todas as ocorrências.
+• Útil para portar código entre plataformas (uint32_t, size_t, etc.).
+Abstração de detalhes de implementação
+• Você pode expor apenas o alias em headers, escondendo a estrutura real no .c.
+• Ex.: typedef struct _Lista *Lista; – o usuário manipula um ponteiro opaco.
+Simplificação de sintaxes complicadas
+• Ponteiros para funções ficam legíveis:
+c
+typedef int (*Comparator)(const void *, const void *);
+Comparator cmp = strcmp;
+Políticas de estilo/tipos
+• Criar “tipos conceituais”, p.ex. typedef double metros; diferencia valores com mesma base numérica mas semântico distinto.
+Em suma, usa-se typedef para tornar o código mais claro, portável e fácil de manter, sem custo de desempenho.
+
+Feedback submitted
+an hour ago
+/*
