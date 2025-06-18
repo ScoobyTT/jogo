@@ -9,7 +9,7 @@ struct nodo {
 
 class Basic {
     public:
-    nodo *raiz;
+    nodo *;
 
     Basic() { raiz = nullptr; }
 
