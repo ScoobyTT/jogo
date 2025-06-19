@@ -1,142 +1,100 @@
 #include <iostream>
 using namespace std;
-struct jogador{
-    player nome;
+
+// Estrutura do jogador
+struct jogador {
+    string nome;
     int score;
     int vida;
 };
-struct nodo{
-    string txt;
-    nodo* op1
-    nodo *op2
+
+// Nó da lista ligada de falas
+struct lista {
+    string texto;
+    lista* prox;
 };
-class arvore{
-    private:
+
+// Nó da árvore
+struct nodo {
+    lista* falas;
+    nodo* op1;
+    nodo* op2;
+
+    nodo(): falas(nullptr), op1(nullptr), op2(nullptr) {}
+};
+
+// Classe da árvore
+class arvore {
+private:
     nodo* raiz;
-    public:
-    arvore(): raiz(nullptr){}
-    void insere(nodo *raiz, jogador player){
-        if(raiz == nullptr) raiz = new nodo(player, nullptr, nullptr);
-        else{
-            raiz -> info = player;
-            raiz -> op1 = new nodo(player, nullptr, nullptr);
-            raiz -> op2 = new nodo(player, nullptr, nullptr);                
-        }
-        if(player > raiz->info)raiz->op2 = insere(player);
-        else if(player < raiz->info)raiz->op1 = insere(player);
-        else cout << "Jogador ja existe" << endl;
-    }
-    void incrementaArvoreOp1(){
-        nodo *aux = raiz;
-        while(aux != nullptr){
-            aux = aux -> op1;
+
+    void adicionarTexto(nodo* no, const string& texto) {
+        lista* nova = new lista{texto, nullptr};
+        if (!no->falas) {
+            no->falas = nova;
+        } else {
+            lista* aux = no->falas;
+            while (aux->prox) aux = aux->prox;
+            aux->prox = nova;
         }
     }
-    void incrementaArvoreOp2(){
-        nodo *aux = raiz;
-        while(aux != nullptr){
-            aux = aux -> op2;
+
+    void mostrarFalas(lista* l) {
+        while (l) {
+            cout << "- " << l->texto << endl;
+            l = l->prox;
         }
     }
-    void incrementaArvore(){
-        if(player > raiz->player)incrementaArvoreOp2();
-        else incrementaArvoreOp1();
+
+    void mostrarArvore(nodo* no, int nivel = 0) {
+        if (!no) return;
+
+        mostrarArvore(no->op2, nivel + 1);
+
+        for (int i = 0; i < nivel; ++i) cout << "  ";
+        cout << "Cena:\n";
+        mostrarFalas(no->falas);
+
+        mostrarArvore(no->op1, nivel + 1);
     }
-    void mostrarArvore(nodo* raiz, int nivel = 0) {
-        if (raiz == nullptr) {
-            return;
+
+    void liberar(nodo* no) {
+        if (!no) return;
+        liberar(no->op1);
+        liberar(no->op2);
+        lista* l = no->falas;
+        while (l) {
+            lista* temp = l;
+            l = l->prox;
+            delete temp;
         }
-        
-        // Mostra a subárvore direita primeiro
-        mostrarArvore(raiz->op2, nivel + 1);
-        
-        // Mostra o nó atual
-        for (int i = 0; i < nivel; i++) {
-            cout << "  ";
-        }
-        cout << "Jogador: " << raiz->player.nome 
-             << " (Vida: " << raiz->player.vida 
-             << ", Energia: " << raiz->player.energia ")" << endl;
-        
-        // Mostra a subárvore esquerda
-        mostrarArvore(raiz->op1, nivel + 1);
+        delete no;
     }
-    void mostrarArvore(){
+
+public:
+    arvore(): raiz(nullptr) {}
+
+    nodo* getRaiz() { return raiz; }
+
+    nodo* criarCena(const string& texto) {
+        nodo* nova = new nodo;
+        adicionarTexto(nova, texto);
+        if (!raiz) raiz = nova;
+        return nova;
+    }
+
+    void adicionarCena(nodo* pai, int opcao, const string& texto) {
+        nodo* nova = new nodo;
+        adicionarTexto(nova, texto);
+        if (opcao == 1) pai->op1 = nova;
+        else if (opcao == 2) pai->op2 = nova;
+    }
+
+    void mostrar() {
         mostrarArvore(raiz);
     }
-    ~arvore(){
-        delete raiz;
+
+    ~arvore() {
+        liberar(raiz);
     }
-    void menu(){
-        while(true){
-            int op;
-            cout<<"\n ..... JOGO DE AVENTURA .....\n"
-                <<"\n - Selecione as opções desejadas\n"
-                <<"\n 1 - Para Iniciar o jogo\n"
-                <<"\n 2 - Para Sair do jogo\n"
-                <<"\n 3 - Para ver as regras do jogo\n"
-                <<"\n 4 - Para ver a história do jogo\n"
-                <<"\n 5 - Para refazer a ultima ação\n"
-                <<"\n 6 - Para desfazer a ultima ação\n"
-                <<"\n 7 - Para voltar no inicio\n"
-                <<"\n 0 - Para sair do jogo\n";
-            cin>>op;
-            switch(op){
-                case 1: iniciarJogo(); break;
-                case 2: break;
-                case 3: break;
-                case 4: return;
-            }
-        }
-    }
-    void menuFinal(){
-        while(true){
-            int op;
-            cout <<"\n ..... FINAL DO JOGO ..... \n"
-                << "\n - Selecione as opções desejadas\n"
-                << "\n 1 - Para jogar novamente\n"
-                << "\n 2 - Para sair do jogo\n";
-            cin>>op;
-            switch(op){
-                case 1: iniciarJogo(); break;
-                case 2: break;
-            }
-        }
-    }
-    
-    void iniciarJogo(){
-        jogador player;
-        cout<<"\n ..... INICIANDO O JOGO ..... \n";
-        cout <<"\n Escolha seu NICK: ";
-        cin>>player.nome;
-        player.vida = 100;
-        player.energia = 100;
-        insere(raiz, player);
-        mostrarArvore();
-    }
-    void mostrarRegras(){
-        cout<<"\n ..... REGRAS ..... \n"
-        <<"\n 1 - Para jogar\n"
-        <<"\n 2 - Para sair\n"; 
-    }
-    void mostrarHistoria(){
-        cout<<"\n ..... HISTORIA ..... \n"
-        <<"\n 1 - Para jogar\n"
-        <<"\n 2 - Para sair\n"; 
-    }
-    void refazerAcao(){
-        cout<<"\n ..... REFazer AÇÃO ..... \n"
-        <<"\n 1 - Para jogar\n"
-        <<"\n 2 - Para sair\n"; 
-    }
-    void desfazerAcao(){
-        cout<<"\n ..... DESfazer AÇÃO ..... \n"
-        <<"\n 1 - Para jogar\n"
-        <<"\n 2 - Para sair\n"; 
-    }
-    void voltarInicio(){    
-        cout<<"\n ..... VOLTAR INICIO ..... \n"
-        <<"\n 1 - Para jogar\n"
-        <<"\n 2 - Para sair\n"; 
-    }
-}
+};
