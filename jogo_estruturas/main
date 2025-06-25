@@ -1,0 +1,6 @@
+int main() {
+    Arvore jogo;
+    jogo.construirCenas();
+    jogo.iniciarJogo();
+    return 0;
+}
