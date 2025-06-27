@@ -4,7 +4,6 @@
 #include <limits> // Para numeric_limits
 #include <algorithm> // Para std::sort ou outras operações de lista
 
-
 // Estrutura para os nós da lista de falas (já existente)
 struct Lista {
     string texto;
@@ -17,12 +16,7 @@ struct Nodo {
     Lista* falas;
     Nodo* op1; // esquerda
     Nodo* op2; // direita
-    // Adicionar um identificador para cada nodo para futuros requisitos (ex: leitura de arquivo)
-    // int id_nodo;
-    // bool is_final; // Pode ser útil para indicar se um nodo é um final de jogo
-    // bool is_win;   // Indica se este final é uma vitória ou derrota
 };
-
 
 struct JogadorScore {
     string nome;
@@ -38,15 +32,11 @@ struct ScoreNodo {
     ScoreNode* ant;
 };
 
-
-
-// A classe 'Arvore' será renomeada para 'Jogo' ou 'GameManager'
-// para refletir suas responsabilidades ampliadas.
 class Jogo {
 private:
     Nodo* raiz;
-    ScoreNode* scoreInicio; // Início da lista de scores
-    ScoreNode* scoreFim;   // Fim da lista de scores
+    ScoreNodo* scoreInicio; // Início da lista de scores
+    ScoreNodo* scoreFim;   // Fim da lista de scores
 
     // Adicione uma variável para manter o jogador atual durante o jogo.
     string jogadorAtualNome;
@@ -57,224 +47,9 @@ public:
         // No construtor, você pode tentar carregar scores de um arquivo aqui.
         carregarScores(); // Função a ser implementada
     }
-
-    //  Métodos da Árvore (adaptados da sua classe Arvore) 
-    Lista* adicionarFalas(const vector<string>& textos) { // Usando vector para flexibilidade
-        Lista* inicio = nullptr;
-        Lista* fim = nullptr;
-        for (const string& texto_item : textos) {
-            Lista* nova = new Lista{texto_item, nullptr, nullptr};
-            if (inicio == nullptr) {
-                inicio = nova;
-                fim = nova;
-            } else {
-                fim->prox = nova;
-                nova->ant = fim;
-                fim = nova;
-            }
-        }
-        return inicio;
+    void carregarScores() {
+        std::cout << "(Scores carregados do arquivo - Funcionalidade de arquivo a ser implementada)" << endl;
     }
-
-    Nodo* criarNodo(const vector<string>& textos) { // Usando vector
-        Nodo* novo = new Nodo;
-        novo->falas = adicionarFalas(textos);
-        novo->op1 = nullptr;
-        novo->op2 = nullptr;
-        // if (textos.size() > 0) { // Opcional: configurar id_nodo se necessário
-        //    novo->id_nodo = proximo_id_nodo++; // Crie um contador global ou membro
-        // }
-        // novo->is_final = false; // Por padrão, não é um nodo final
-        // novo->is_win = false;   // Por padrão, não é uma vitória
-        return novo;
-    }
-
-    // Sua função construirCenas()
-    void construirCenas() {
-        // Cena raiz
-        raiz = criarNodo({"Você acorda em uma floresta misteriosa.",
-                         "Dois caminhos se abrem: esquerda e direita."});
-
-        // Esquerda da raiz
-        raiz->op1 = criarNodo({"Você segue pela esquerda e encontra um lago brilhante.",
-                              "Um barulho estranho vem da água."});
-
-        // Direita da raiz
-        raiz->op2 = criarNodo({"Você segue pela direita e encontra uma caverna escura.",
-                              "Uma sombra se move dentro dela."});
-
-        // Filhos da esquerda
-        raiz->op1->op1 = criarNodo({"Você se aproxima do lago e vê uma criatura mágica.",
-                                   "Ela oferece uma poção."});
-
-        raiz->op1->op2 = criarNodo({"Você ignora o lago e continua andando pela mata.",
-                                   "Um grupo de viajantes aparece."});
-
-        // Filhos da direita
-        raiz->op2->op1 = criarNodo({"Você entra na caverna e encontra um baú trancado.",
-                                   "Há símbolos antigos nas paredes."});
-
-        raiz->op2->op2 = criarNodo({"Você contorna a caverna e chega ao topo de uma montanha.",
-                                   "A vista é deslumbrante, mas há uma tempestade se aproximando."});
-        
-        // Exemplo de como definir um final de vitória/derrota (Cena 5 é um final de vitória, Cena 6 é derrota)
-        // Isso é apenas um exemplo, você precisa definir a lógica de vitória/derrota na sua história.
-        // if (raiz->op1->op2) { // Cena 5: Encontro com viajantes
-        //     raiz->op1->op2->is_final = true;
-        //     raiz->op1->op2->is_win = true; // Considerar que encontrar viajantes é uma vitória
-        // }
-        // if (raiz->op2->op1) { // Cena 6: Baú trancado na caverna
-        //     raiz->op2->op1->is_final = true;
-        //     raiz->op2->op1->is_win = false; // Considerar que ficar preso no baú é uma derrota
-        // }
-
-        [cite_start]// TODO: Expandir a árvore para ter no mínimo 6 níveis como requisito [cite: 9]
-        // Lembre-se que você pode ramificar ainda mais os nós raiz->op1->op1, raiz->op1->op2, etc.
-    }
-
-    void exibirCena(Nodo* nodo) {
-        Lista* atual = nodo->falas;
-        while (atual != nullptr) {
-            std::cout << atual->texto << std::endl;
-            atual = atual->prox;
-        }
-    }
-
-    //  Métodos de Jogo e Menu 
-
-    void exibirMenuPrincipal() {
-        int escolha;
-        do {
-            using namespace std;
-            cout << "\n=== JOGO-ED1: Uma Aventura com Árvores de Decisão ===" << endl
-             << "1. Conhecer a História do Jogo" 
-             << "2. Regras do Jogo" 
-             << "3. Jogar" 
-             << "4. Verificar Score" 
-             << "0. Sair" 
-             << "-----------------------------------------------------" 
-             << "Escolha uma opcao: " << endl;
-            cin >> escolha;
-            // Limpa o buffer do teclado
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-            switch (escolha) {
-                case 1:
-                    mostrarHistoria();
-                    break;
-                case 2:
-                    mostrarRegras();
-                    break;
-                case 3:
-                    jogar();
-                    break;
-                case 4:
-                    verificarScore();
-                    break;
-                case 0:
-                    cout << "Obrigado por jogar! Saindo..." << endl;
-                    break;
-                default:
-                    cout << "Opcao invalida. Tente novamente." << endl;
-            }
-        } while (escolha != 0);
-    }
-
-    void mostrarHistoria() {
-        using namespace std;
-        cout << "\n--- Historia do Jogo ---" << endl;
-         << "Este é um jogo de aventura onde suas escolhas moldam seu destino." 
-         << "Você acorda em um local misterioso e deve navegar por caminhos perigosos." 
-         << "Cada decisão pode levar a uma vitoria gloriosa ou a uma derrota inesperada."
-         << "Boa sorte, aventureiro!" << endl;
-         << "Pressione Enter para voltar ao menu..." << endl;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-    void mostrarRegras() {
-        using namespace std;
-        cout << "\n--- Regras do Jogo ---" << 
-         << "1. Leia atentamente a descricao de cada cena." 
-         << "2. Escolha entre as opcoes disponiveis (geralmente 1 para Esquerda, 2 para Direita)." << endl;
-         << "3. Suas escolhas sao permanentes e afetarao o desfecho do jogo." << endl;
-         << "4. O objetivo e alcancar um final de vitoria. Um final de derrota termina o jogo." << endl;
-         << "Pressione Enter para voltar ao menu..." << endl;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-    void jogar() {
-        using namespace std;
-        cout << "\n--- Iniciar Novo Jogo ---" << endl;
-        cout << "Qual o seu nome, aventureiro? ";
-        getline(cin, jogadorAtualNome);
-
-        Nodo* atual = raiz;
-        bool jogo_ativo = true;
-        bool vitoria_atual = false;
-
-        while (atual != nullptr && jogo_ativo) {
-            cout << "\n--- Cena Atual ---" << endl;
-            exibirCena(atual);
-
-            // TODO: Aqui voce precisa definir o que acontece no FINAL de cada caminho
-            // e se e uma VITORIA ou DERROTA.
-            // Voce pode adicionar um atributo 'is_final' e 'is_win' na struct Nodo
-            // para marcar os nodos que representam o fim de um caminho e o seu resultado.
-            // Por exemplo: if (atual->is_final) { ... }
-
-            // Por enquanto, uma logica simples para testar o fluxo:
-            if (atual->op1 == nullptr && atual->op2 == nullptr) {
-                cout << "\nFim do caminho nesta historia." << endl;
-                // Exemplo de logica de vitoria/derrota (adaptar para sua historia):
-                // if (atual->is_win) {
-                //     cout << "Parabens! Voce encontrou um final de vitoria!" << endl;
-                //     vitoria_atual = true;
-                // } else {
-                //     cout << "Que pena! Voce encontrou um final de derrota." << endl;
-                //     vitoria_atual = false;
-                // }
-                // jogo_ativo = false; // O jogo termina aqui
-                
-                // Exemplo simplificado de vitoria/derrota para fins de teste
-                if (atual == raiz->op1->op2) { // Ex: se chegar na cena dos viajantes, eh vitoria
-                    cout << "Parabéns! Você encontrou um grupo de viajantes amigáveis e foi salvo! VITÓRIA!" << endl;
-                    vitoria_atual = true;
-                } else if (atual == raiz->op2->op1) { // Ex: se ficar preso no baú, eh derrota
-                    cout << "Você ficou preso no baú! Fim da aventura. DERROTA!" << endl;
-                    vitoria_atual = false;
-                } else { // Outros finais que não são nem vitória nem derrota explícita
-                    cout << "Você chegou a um beco sem saída. Tente novamente!" << endl;
-                    vitoria_atual = false; // Considera derrota para fins de score
-                }
-                jogo_ativo = false;
-            } else {
-                int escolha;
-                cout << "\nEscolha seu proximo passo: ";
-                if (atual->op1 != nullptr) cout << "[1] Esquerda ";
-                if (atual->op2 != nullptr) cout << "[2] Direita ";
-                cout << "| [0] Sair do jogo\n> ";
-                cin >> escolha;
-
-                cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Limpa o buffer
-
-                if (escolha == 1 && atual->op1 != nullptr) {
-                    atual = atual->op1;
-                } else if (escolha == 2 && atual->op2 != nullptr) {
-                    atual = atual->op2;
-                } else if (escolha == 0) {
-                    cout << "Saindo do jogo atual..." << endl;
-                    jogo_ativo = false;
-                } else {
-                    cout << "Escolha invalida ou caminho inexistente. Tente novamente." << endl;
-                    // Nao muda 'atual', para que a cena atual seja exibida novamente
-                }
-            }
-        }
-        // Após o jogo terminar ou o jogador sair
-        if (!jogadorAtualNome.empty()) { // Verifica se um nome de jogador foi inserido
-            atualizarScore(jogadorAtualNome, vitoria_atual);
-        }
-        exibirMenuPosJogo(); // Exibe o menu pós-jogo
-    }
-
     // Métodos de Score 
     void adicionarScore(const JogadorScore& novoJogador) {
         ScoreNode* novaNode = new ScoreNode{novoJogador, nullptr, nullptr};
@@ -377,21 +152,195 @@ public:
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
-    //  Métodos de persistencia 
     void salvarScores() {
-        // TODO: Implementar salvamento em arquivo (e.g., "scores.txt")
-        // Percorra a lista de scores e escreva cada JogadorScore em um arquivo.
-        // O formato deve ser facil de ler na funcao carregarScores().
         std::cout << "\n(Scores salvos no arquivo - Funcionalidade de arquivo a ser implementada)" << endl;
     }
 
-    void carregarScores() {
-        // TODO: Implementar carregamento de arquivo
-        // Leia o arquivo de scores e reconstrua a lista duplamente encadeada.
-        // Cuidado para nao adicionar duplicatas se ja existir em memoria.
-        // Pode limpar a lista atual antes de carregar ou atualizar existentes.
-        std::cout << "(Scores carregados do arquivo - Funcionalidade de arquivo a ser implementada)" << endl;
+
+    //  Métodos da Árvore 
+    Lista* adicionarFalas(const string textos[], int n) { // Usando vector para flexibilidade
+        Lista* inicio = nullptr;
+        Lista* fim = nullptr;
+        for (const string& texto_item : textos) {
+            Lista* nova = new Lista{texto_item, nullptr, nullptr};
+            if (inicio == nullptr) {
+                inicio = nova;
+                fim = nova;
+            } else {
+                fim->prox = nova;
+                nova->ant = fim;
+                fim = nova;
+            }
+        }
+        return inicio;
     }
+
+    Nodo* criarNodo(const string textos[], int n) { 
+        Nodo* novo = new Nodo;
+        novo->falas = adicionarFalas(textos);
+        novo->op1 = nullptr;
+        novo->op2 = nullptr;
+     
+        return novo;
+    }
+
+    // função construirCenas
+    void construirCenas() {
+        // Cena raiz
+        raiz = criarNodo({"Você acorda em uma floresta misteriosa.",
+                         "Dois caminhos se abrem: esquerda e direita."});
+
+        // Esquerda da raiz
+        raiz->op1 = criarNodo({"Você segue pela esquerda e encontra um lago brilhante.",
+                              "Um barulho estranho vem da água."});
+
+        // Direita da raiz
+        raiz->op2 = criarNodo({"Você segue pela direita e encontra uma caverna escura.",
+                              "Uma sombra se move dentro dela."});
+
+        // Filhos da esquerda
+        raiz->op1->op1 = criarNodo({"Você se aproxima do lago e vê uma criatura mágica.",
+                                   "Ela oferece uma poção."});
+
+        raiz->op1->op2 = criarNodo({"Você ignora o lago e continua andando pela mata.",
+                                   "Um grupo de viajantes aparece."});
+
+        // Filhos da direita
+        raiz->op2->op1 = criarNodo({"Você entra na caverna e encontra um baú trancado.",
+                                   "Há símbolos antigos nas paredes."});
+
+        raiz->op2->op2 = criarNodo({"Você contorna a caverna e chega ao topo de uma montanha.",
+                                   "A vista é deslumbrante, mas há uma tempestade se aproximando."});
+        
+        
+    }
+
+    void exibirCena(Nodo* nodo) {
+        Lista* atual = nodo->falas;
+        while (atual != nullptr) {
+            std::cout << atual->texto << std::endl;
+            atual = atual->prox;
+        }
+    }
+
+    //  Métodos de Jogo e Menu 
+
+    void exibirMenuPrincipal() {
+        int escolha;
+        do {
+            using namespace std;
+            cout << "\n=== JOGO-ED1: Uma Aventura com Árvores de Decisão ===" << endl
+             << "1. Conhecer a História do Jogo" 
+             << "2. Regras do Jogo" 
+             << "3. Jogar" 
+             << "4. Verificar Score" 
+             << "0. Sair" 
+             << "-----------------------------------------------------" 
+             << "Escolha uma opcao: " << endl;
+            cin >> escolha;
+            // Limpa o buffer do teclado
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            switch (escolha) {
+                case 1:
+                    mostrarHistoria();
+                    break;
+                case 2:
+                    mostrarRegras();
+                    break;
+                case 3:
+                    jogar();
+                    break;
+                case 4:
+                    verificarScore();
+                    break;
+                case 0:
+                    cout << "Obrigado por jogar! Saindo..." << endl;
+                    break;
+                default:
+                    cout << "Opcao invalida. Tente novamente." << endl;
+            }
+        } while (escolha != 0);
+    }
+
+    void mostrarHistoria() {
+        using namespace std;
+        cout << "\n--- Historia do Jogo ---" << endl;
+         << "Este é um jogo de aventura onde suas escolhas moldam seu destino." 
+         << "Você acorda em um local misterioso e deve navegar por caminhos perigosos." 
+         << "Cada decisão pode levar a uma vitoria gloriosa ou a uma derrota inesperada."
+         << "Boa sorte, aventureiro!" << endl;
+         << "Pressione Enter para voltar ao menu..." << endl;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+    void mostrarRegras() {
+        using namespace std;
+        cout << "\n--- Regras do Jogo ---" << 
+         << "1. Leia atentamente a descricao de cada cena." 
+         << "2. Escolha entre as opcoes disponiveis (geralmente 1 para Esquerda, 2 para Direita)." << endl;
+         << "3. Suas escolhas sao permanentes e afetarao o desfecho do jogo." << endl;
+         << "4. O objetivo e alcancar um final de vitoria. Um final de derrota termina o jogo." << endl;
+         << "Pressione Enter para voltar ao menu..." << endl;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+    void jogar() {
+        using namespace std;
+        cout << "\n--- Iniciar Novo Jogo ---" << endl;
+        cout << "Qual o seu nome, aventureiro? ";
+        getline(cin, jogadorAtualNome);
+
+        Nodo* atual = raiz;
+        bool jogo_ativo = true;
+        bool vitoria_atual = false;
+
+        while (atual != nullptr && jogo_ativo) {
+            cout << "\n--- Cena Atual ---" << endl;
+            exibirCena(atual);
+
+
+            if (atual->op1 == nullptr && atual->op2 == nullptr) {
+                cout << "\nFim do caminho nesta historia." << endl;
+                
+                } else if (atual == raiz->op2->op1) 
+                    cout << "Você ficou preso no baú! Fim da aventura. DERROTA!" << endl;
+                    vitoria_atual = false;
+                } else { 
+                    cout << "Você chegou a um beco sem saída. Tente novamente!" << endl;
+                    vitoria_atual = false; 
+                }
+                jogo_ativo = false;
+            } else {
+                int escolha;
+                cout << "\nEscolha seu proximo passo: ";
+                if (atual->op1 != nullptr) cout << "[1] Esquerda ";
+                if (atual->op2 != nullptr) cout << "[2] Direita ";
+                cout << "| [0] Sair do jogo\n> ";
+                cin >> escolha;
+
+                cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Limpa o buffer
+
+                if (escolha == 1 && atual->op1 != nullptr) {
+                    atual = atual->op1;
+                } else if (escolha == 2 && atual->op2 != nullptr) {
+                    atual = atual->op2;
+                } else if (escolha == 0) {
+                    cout << "Saindo do jogo atual..." << endl;
+                    jogo_ativo = false;
+                } else {
+                    cout << "Escolha invalida ou caminho inexistente. Tente novamente." << endl;
+
+                }
+            }
+        }
+        // Após o jogo terminar ou o jogador sair
+        if (!jogadorAtualNome.empty()) { // Verifica se um nome de jogador foi inserido
+            atualizarScore(jogadorAtualNome, vitoria_atual);
+        }
+        exibirMenuPosJogo(); // Exibe o menu pós-jogo
+       
+
+    
+    
 
     // Menu Pos-Jogo 
     void exibirMenuPosJogo() {
@@ -550,8 +499,8 @@ public:
     ~Jogo() {
         destruirArvore(raiz);
         destruirScores();
-        // No destrutor, você também pode salvar scores no arquivo para garantir que não se percam.
-        // salvarScores(); // Descomente se quiser salvar ao fechar o programa
+        //  salvar o destrutor scores no arquivo para garantir que não se percam.
+        // salvarScores(); // se eu quiser salvar ao fechar o programa
     }
 
 private:
