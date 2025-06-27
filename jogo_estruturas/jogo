@@ -12,7 +12,7 @@ struct Lista {
     Lista* ant;
 };
 
-// Estrutura para os nós da árvore de decisão (já existente)
+// Estrutura para os nós da árvore de decisão 
 struct Nodo {
     Lista* falas;
     Nodo* op1; // esquerda
@@ -23,7 +23,7 @@ struct Nodo {
     // bool is_win;   // Indica se este final é uma vitória ou derrota
 };
 
-// --- NOVAS ESTRUTURAS PARA GERENCIAMENTO DE SCORE ---
+
 struct JogadorScore {
     string nome;
     int total_jogos;
@@ -37,7 +37,7 @@ struct ScoreNodo {
     ScoreNode* prox;
     ScoreNode* ant;
 };
-// --- FIM NOVAS ESTRUTURAS ---
+
 
 
 // A classe 'Arvore' será renomeada para 'Jogo' ou 'GameManager'
@@ -58,7 +58,7 @@ public:
         carregarScores(); // Função a ser implementada
     }
 
-    // --- Métodos da Árvore (adaptados da sua classe Arvore) ---
+    //  Métodos da Árvore (adaptados da sua classe Arvore) 
     Lista* adicionarFalas(const vector<string>& textos) { // Usando vector para flexibilidade
         Lista* inicio = nullptr;
         Lista* fim = nullptr;
@@ -135,25 +135,25 @@ public:
     void exibirCena(Nodo* nodo) {
         Lista* atual = nodo->falas;
         while (atual != nullptr) {
-            cout << atual->texto << endl;
+            std::cout << atual->texto << std::endl;
             atual = atual->prox;
         }
     }
 
-    // --- Métodos de Jogo e Menu ---
+    //  Métodos de Jogo e Menu 
 
     void exibirMenuPrincipal() {
         int escolha;
         do {
             using namespace std;
-            cout << "\n=== JOGO-ED1: Uma Aventura com Árvores de Decisão ===" << endl;
-            cout << "1. Conhecer a História do Jogo" << endl;
-            cout << "2. Regras do Jogo" << endl;
-            cout << "3. Jogar" << endl;
-            cout << "4. Verificar Score" << endl;
-            cout << "0. Sair" << endl;
-            cout << "-----------------------------------------------------" << endl;
-            cout << "Escolha uma opcao: ";
+            cout << "\n=== JOGO-ED1: Uma Aventura com Árvores de Decisão ===" << endl
+             << "1. Conhecer a História do Jogo" 
+             << "2. Regras do Jogo" 
+             << "3. Jogar" 
+             << "4. Verificar Score" 
+             << "0. Sair" 
+             << "-----------------------------------------------------" 
+             << "Escolha uma opcao: " << endl;
             cin >> escolha;
             // Limpa o buffer do teclado
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -183,21 +183,21 @@ public:
     void mostrarHistoria() {
         using namespace std;
         cout << "\n--- Historia do Jogo ---" << endl;
-        cout << "Este é um jogo de aventura onde suas escolhas moldam seu destino." << endl;
-        cout << "Você acorda em um local misterioso e deve navegar por caminhos perigosos." << endl;
-        cout << "Cada decisão pode levar a uma vitoria gloriosa ou a uma derrota inesperada." << endl;
-        cout << "Boa sorte, aventureiro!" << endl;
-        cout << "Pressione Enter para voltar ao menu..." << endl;
+         << "Este é um jogo de aventura onde suas escolhas moldam seu destino." 
+         << "Você acorda em um local misterioso e deve navegar por caminhos perigosos." 
+         << "Cada decisão pode levar a uma vitoria gloriosa ou a uma derrota inesperada."
+         << "Boa sorte, aventureiro!" << endl;
+         << "Pressione Enter para voltar ao menu..." << endl;
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
     void mostrarRegras() {
         using namespace std;
-        cout << "\n--- Regras do Jogo ---" << endl;
-        cout << "1. Leia atentamente a descricao de cada cena." << endl;
-        cout << "2. Escolha entre as opcoes disponiveis (geralmente 1 para Esquerda, 2 para Direita)." << endl;
-        cout << "3. Suas escolhas sao permanentes e afetarao o desfecho do jogo." << endl;
-        cout << "4. O objetivo e alcancar um final de vitoria. Um final de derrota termina o jogo." << endl;
-        cout << "Pressione Enter para voltar ao menu..." << endl;
+        cout << "\n--- Regras do Jogo ---" << 
+         << "1. Leia atentamente a descricao de cada cena." 
+         << "2. Escolha entre as opcoes disponiveis (geralmente 1 para Esquerda, 2 para Direita)." << endl;
+         << "3. Suas escolhas sao permanentes e afetarao o desfecho do jogo." << endl;
+         << "4. O objetivo e alcancar um final de vitoria. Um final de derrota termina o jogo." << endl;
+         << "Pressione Enter para voltar ao menu..." << endl;
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
     void jogar() {
@@ -275,7 +275,7 @@ public:
         exibirMenuPosJogo(); // Exibe o menu pós-jogo
     }
 
-    // --- Métodos de Score ---
+    // Métodos de Score 
     void adicionarScore(const JogadorScore& novoJogador) {
         ScoreNode* novaNode = new ScoreNode{novoJogador, nullptr, nullptr};
 
@@ -355,7 +355,7 @@ public:
 
     void verificarScore() {
         using namespace std;
-        cout << "\n--- Score dos Jogadores (Ordenado por Vitorias) ---" << endl;
+        cout << "\n--- Score dos Jogadores ---" << endl;
         if (scoreInicio == nullptr) {
             cout << "Nenhum score registrado ainda." << endl;
             cout << "Pressione Enter para voltar ao menu..." << endl;
@@ -363,7 +363,7 @@ public:
             return;
         }
 
-        ScoreNode* atual = scoreInicio;
+        ScoreNodo* atual = scoreInicio;
         int rank = 1;
         while (atual != nullptr) {
             cout << rank << ". Nome: " << atual->jogador.nome
@@ -377,7 +377,7 @@ public:
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
-    // --- Métodos de persistencia (arquivos) ---
+    //  Métodos de persistencia 
     void salvarScores() {
         // TODO: Implementar salvamento em arquivo (e.g., "scores.txt")
         // Percorra a lista de scores e escreva cada JogadorScore em um arquivo.
@@ -393,7 +393,7 @@ public:
         std::cout << "(Scores carregados do arquivo - Funcionalidade de arquivo a ser implementada)" << endl;
     }
 
-    // --- Menu Pos-Jogo ---
+    // Menu Pos-Jogo 
     void exibirMenuPosJogo() {
         using namespace std;
         int escolha;
@@ -424,7 +424,7 @@ public:
         } while (escolha != 0);
     }
 
-    // --- Menu de Informacoes Tecnicas ---
+    //  Menu de Informacoes Tecnicas 
     void exibirInformacoesTecnicas() {
         using namespace std;
         int escolha;
@@ -467,14 +467,14 @@ public:
 
     void listarArvoreEmOrdem(Nodo* nodo) { // Exemplo de percurso em pre-ordem
         using namespace std;
-        if (nodo == nullptr) return;
+        if (nodo == nullptr) cout << "Erro! Arvore vazia." << endl;return;
         cout << "Cena: ";
         if (nodo->falas && nodo->falas->texto.length() > 20) {
             cout << "\"" << nodo->falas->texto.substr(0, 20) << "..." << "\"" << endl;
         } else if (nodo->falas) {
             cout << "\"" << nodo->falas->texto << "\"" << endl;
         } else {
-            cout << " (Sem texto)" << endl;
+            cout << "(Sem texto)" << endl;
         }
         listarArvoreEmOrdem(nodo->op1);
         listarArvoreEmOrdem(nodo->op2);
@@ -482,11 +482,12 @@ public:
 
     void buscarEstatisticas() {
         using namespace std;
-        cout << "\n--- Buscar Estatisticas ---" << endl;
-        cout << "1. Buscar por nome do jogador" << endl;
-        cout << "2. Buscar por numero de jogos ganhos (Minimo)" << endl; // Exemplo
-        cout << "0. Voltar" << endl;
-        cout << "Escolha uma opcao: ";
+        cout << "\n--- Buscar Estatisticas ---" 
+         << "1. Buscar por nome do jogador" 
+         << "2. Buscar por numero de jogos ganhos (Minimo)" << endl; // Exemplo
+         << "0. Voltar" 
+         << "Escolha uma opcao: " << endl;
+        
         int escolha;
         cin >> escolha;
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -545,7 +546,7 @@ public:
     }
 
 
-    // --- Destrutor e Liberacao de Memoria ---
+    //  Destrutor e Liberacao de Memoria 
     ~Jogo() {
         destruirArvore(raiz);
         destruirScores();
