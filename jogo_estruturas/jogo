@@ -3,6 +3,7 @@
 #include <vector> // Para facilitar a passagem de arrays de string para adicionarFalas
 #include <limits> // Para numeric_limits
 #include <algorithm> // Para std::sort ou outras operações de lista
+include <ifstream>
 
 // Estrutura para os nós da lista de falas (já existente)
 struct Lista {
@@ -183,9 +184,20 @@ public:
      
         return novo;
     }
+void Cena(){
 
+}
+void chamaCena(){
+ofstream arquivoE;
+arquivo.open("arquivoE.txt");
+
+
+arquivoE.close;
+return 0;
+
+}
     // função construirCenas
-    void construirCenas() {
+    */ void construirCenas() {
         // Cena raiz
         raiz = criarNodo({"Você acorda em uma floresta misteriosa.",
                          "Dois caminhos se abrem: esquerda e direita."});
@@ -214,6 +226,7 @@ public:
         
         
     }
+*/
 
     void exibirCena(Nodo* nodo) {
         Lista* atual = nodo->falas;
@@ -222,6 +235,7 @@ public:
             atual = atual->prox;
         }
     }
+
 
     //  Métodos de Jogo e Menu 
 
