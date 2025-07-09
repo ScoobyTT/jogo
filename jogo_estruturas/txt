@@ -31,6 +31,13 @@ void construirCenas() {
     // pois o while(getline(...)) já falha quando não há mais linhas ou ocorre um erro de leitura.
     // O erro "ERRO! O arquivo nao pode ser lido" já é coberto pelo if (!arquivoE.is_open()).
 }
+*/void recebeCena(){
+int escolha;
+cin >> escolha;
+if (escolha == 1){
+cout << arquivoE[0]
+/*
+}
 
 int main() {
     construirCenas(); // Chama a função para construir e exibir as cenas
