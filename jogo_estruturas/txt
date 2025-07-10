@@ -37,6 +37,18 @@ cin >> escolha;
 if (escolha == 1){
 cout << arquivoE[0]
 /*
+///gndgndmngcnblcfngndgndmngcnblcfngndgndmngcnblcfngndg
+ndmngcnblcfngndgndmngcnblcfngndgndmngcnblcfngndgndmngcnblcfngndg
+ndmngcnblcfngndgndmngcnblcfngndgndmngcnblcfngndgndmngcnblcfngnd
+gndmngcnblcfngndgndmngcnblcfngndgndmngcnblcfngndgndmngcnblcfngnd
+gndmngcnblcfngndgndmngcnblcfngndgndmngcnblcfngndgndmngcnblcfngndgndmn
+gcnblcfngndgndmngcnblcfngndgndmngcnblcfngndgndmngcnblcfngndgndmngcnblc
+fngndgndmngcnblcfngndgndmngcnblcfngndgndmngcnblcfngndgndmng
+cnblcfngndgndmngcnblcfngndgndmngcnblcfn*
+id 1 lsdçds
+kd 2 dfsaf
+id 3 dsakda l
+
 }
 
 int main() {
