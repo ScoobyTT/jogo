@@ -1,0 +1,128 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Lista {
+    string texto;
+    Lista* prox;
+    Lista* ant;
+};
+
+struct Nodo {
+    Lista* falas;
+    Nodo* op1; // esquerda
+    Nodo* op2; // direita
+};
+
+class Arvore {
+private:
+    Nodo* raiz;
+
+public:
+    Arvore() : raiz(nullptr) {}
+
+    Lista* adicionarFalas(string textos[], int n) {
+        Lista* inicio = nullptr;
+        Lista* fim = nullptr;
+        for (int i = 0; i < n; i++) {
+            Lista* nova = new Lista{textos[i], nullptr, nullptr};
+            if (inicio == nullptr) {
+                inicio = nova;
+                fim = nova;
+            } else {
+                fim->prox = nova;
+                nova->ant = fim;
+                fim = nova;
+            }
+        }
+        return inicio;
+    }
+
+    Nodo* criarNodo(string textos[], int n) {
+        Nodo* novo = new Nodo;
+        novo->falas = adicionarFalas(textos, n);
+        novo->op1 = nullptr;
+        novo->op2 = nullptr;
+        return novo;
+    }
+
+    void construirCenas() {
+        // Cena raiz
+        string cena1[] = {"Você acorda em uma floresta misteriosa.",
+                          "Dois caminhos se abrem: esquerda e direita."};
+        raiz = criarNodo(cena1, 2);
+
+        // Esquerda da raiz
+        string cena2[] = {"Você segue pela esquerda e encontra um lago brilhante.",
+                          "Um barulho estranho vem da água."};
+        raiz->op1 = criarNodo(cena2, 2);
+
+        // Direita da raiz
+        string cena3[] = {"Você segue pela direita e encontra uma caverna escura.",
+                          "Uma sombra se move dentro dela."};
+        raiz->op2 = criarNodo(cena3, 2);
+
+        // Filhos da esquerda
+        string cena4[] = {"Você se aproxima do lago e vê uma criatura mágica.",
+                          "Ela oferece uma poção."};
+        raiz->op1->op1 = criarNodo(cena4, 2);
+
+        string cena5[] = {"Você ignora o lago e continua andando pela mata.",
+                          "Um grupo de viajantes aparece."};
+        raiz->op1->op2 = criarNodo(cena5, 2);
+
+        // Filhos da direita
+        string cena6[] = {"Você entra na caverna e encontra um baú trancado.",
+                          "Há símbolos antigos nas paredes."};
+        raiz->op2->op1 = criarNodo(cena6, 2);
+
+        string cena7[] = {"Você contorna a caverna e chega ao topo de uma montanha.",
+                          "A vista é deslumbrante, mas há uma tempestade se aproximando."};
+        raiz->op2->op2 = criarNodo(cena7, 2);
+    }
+
+    void exibirCena(Nodo* nodo) {
+        Lista* atual = nodo->falas;
+        while (atual != nullptr) {
+            cout << atual->texto << endl;
+            atual = atual->prox;
+        }
+    }
+
+    void iniciarJogo() {
+        Nodo* atual = raiz;
+        int escolha;
+        while (atual != nullptr) {
+            cout << "\n--- Cena Atual ---\n";
+            exibirCena(atual);
+            if (atual->op1 == nullptr && atual->op2 == nullptr) {
+                cout << "\nFim do caminho.\n";
+                break;
+            }
+            cout << "\nEscolha: [1] Esquerda | [2] Direita | [0] Sair\n> ";
+            cin >> escolha;
+            if (escolha == 1) atual = atual->op1;
+            else if (escolha == 2) atual = atual->op2;
+            else break;
+        }
+    }
+
+    ~Arvore() {
+        destruir(raiz);
+    }
+
+private:
+    void destruir(Nodo* nodo) {
+        if (nodo == nullptr) return;
+        destruir(nodo->op1);
+        destruir(nodo->op2);
+
+        Lista* atual = nodo->falas;
+        while (atual != nullptr) {
+            Lista* temp = atual;
+            atual = atual->prox;
+            delete temp;
+        }
+        delete nodo;
+    }
+};
