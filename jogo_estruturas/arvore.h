@@ -1,3 +1,5 @@
+#ifndef "arvore.h"
+#define "arvore.h"
 #include <iostream>
 #include "jogo.h"
 #include "jogador.h"
