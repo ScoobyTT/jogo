@@ -19,7 +19,7 @@ struct Nodo {
     Nodo* op2; // direita
 };
 
-struct JogadorScore {
+struct jogadorScore {
     string nome;
     int total_jogos;
     int vitorias;
@@ -49,6 +49,7 @@ public:
         carregarScores(); // Função a ser implementada
     }
     void carregarScores() {
+        // Implementar a funcionalidade de carregar scores de um arquivo
         std::cout << "(Scores carregados do arquivo - Funcionalidade de arquivo a ser implementada)" << endl;
     }
     // Métodos de Score 
@@ -109,7 +110,7 @@ public:
         }
 
         // Se o jogador nao foi encontrado, adiciona um novo
-        JogadorScore novo = {nomeJogador, 1, (venceu ? 1 : 0), (venceu ? 0 : 1)};
+        jogadorScore novo = {nomeJogador, 1, (venceu ? 1 : 0), (venceu ? 0 : 1)};
         adicionarScore(novo);
     }
     void removerScoreNode(ScoreNode* nodeToRemove) {
@@ -153,9 +154,6 @@ public:
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
-    void salvarScores() {
-        std::cout << "\n(Scores salvos no arquivo - Funcionalidade de arquivo a ser implementada)" << endl;
-    }
 
 
     //  Métodos da Árvore 
@@ -527,16 +525,30 @@ public:
                 cout << "Opcao invalida." << endl;
         }
     }
+    void gerenciarSaida(){
+        using namespace std;
+        int escolhaSalvar;
+        cout    << "Deseja salvar seu progresso antes de sair?"
+                << "1. Sim" 
+                << "2. Nao"
+                << "Escolha: "<< endl;
+        cin >> escolhaSalvar;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Limpa buffer
+        if (escolhaSalvar == 1) {
+            meuJogo.salvarScores(); // Chama a funcao salvarScores do seu objeto Jogo
+            std::cout << "Scores salvos com sucesso!" << std::endl;
+        } else      cout << "Scores nao salvos." << std::endl;
+}
+    
+    
 
 
     //  Destrutor e Liberacao de Memoria 
     ~Jogo() {
+        salvarScores(); // se eu quiser salvar ao fechar o programa
         destruirArvore(raiz);
         destruirScores();
         destruirCenas(raiz);
-
-        //  salvar o destrutor scores no arquivo para garantir que não se percam.
-        salvarScores(); // se eu quiser salvar ao fechar o programa
     }
 
     private:
@@ -581,6 +593,30 @@ public:
         }
         delete nodo;
     }
+        void salvarScores() {
+        // Implementar a funcionalidade de salvar scores em um arquivo
+        using namespace std;
+        ofstream arquivo("scores.txt");
+        if (!arquivo.is_open()) {
+            cout << "Erro ao abrir o arquivo para salvar scores." << endl;
+            return;
+        }
+        ScoreNode* atual = scoreInicio;
+        if (atual == nullptr) {
+            cout << "Nenhum score para salvar." << endl;
+            arquivo.close();
+            return;
+        }else{
+            while (atual != nullptr){
+                arquivo << atual->jogador.nome << ","
+                        << atual->jogador.total_jogos << ","
+                        << atual->jogador.vitorias << ","
+                        << atual->jogador.derrotas << endl;
+                atual = atual->prox;
+            }
+        }
+        cout << "\n(Scores salvos no arquivo - Funcionalidade de arquivo a ser implementada)" << endl;
+    }
 };    
 
 // Funcao main para iniciar o jogo
@@ -591,4 +627,3 @@ int main() {
     meuJogo.menuPosJogo(); // Exibe o menu pós-jogo após o término do jogo
     return 0;
 }
-//
