@@ -1,3 +1,5 @@
+#ifndef "cenas.h"
+#define "cenas.h"
 #include <iostream> // Para entrada e saída (cout, endl)
 #include <fstream>  // Para manipulação de arquivos (fstream)
 #include <string>   // Para usar a classe string
