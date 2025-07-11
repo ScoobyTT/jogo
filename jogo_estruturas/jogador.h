@@ -185,5 +185,46 @@ private:
         }
         delete nodo;
     }
+/*
+void carregarScores() {
+        using namespace std;
+        ifstream arquivo("scores.txt");
+        if (!arquivo.is_open()) {
+            cout << "Erro ao abrir o arquivo de scores." << endl;
+            return;
+        }
+        // Limpa a lista de scores antes de carregar novos
+        string linha;
+        while (getline(arquivo, linha)) {
+            // Supondo que o formato seja "nome,total_jogos,vitorias,derrotas"
+            string nome;
+            int total_jogos, vitorias, derrotas;
+            size_t pos = 0;
 
+            // Extrai o nome
+            pos = linha.find(',');
+            nome = linha.substr(0, pos);
+            linha.erase(0, pos + 1);
+
+            // Extrai total_jogos
+            pos = linha.find(',');
+            total_jogos = stoi(linha.substr(0, pos));
+            linha.erase(0, pos + 1);
+
+            // Extrai vitorias
+            pos = linha.find(',');
+            vitorias = stoi(linha.substr(0, pos));
+            linha.erase(0, pos + 1);
+
+            // Extrai derrotas
+            derrotas = stoi(linha);
+
+            // Cria um novo jogadorScore e adiciona à lista de scores
+            JogadorScore novoJogador{nome, total_jogos, vitorias, derrotas};
+            adicionarScore(novoJogador);
+        }
+        // Implementar a funcionalidade de carregar scores de um arquivo
+        //std::cout << "(Scores carregados do arquivo - Funcionalidade de arquivo a ser implementada)" << endl;
+    }
+*/
 
