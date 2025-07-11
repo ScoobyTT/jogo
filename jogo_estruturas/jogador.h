@@ -1,3 +1,5 @@
+#ifndef "jogador.h"
+#define "jogador.h"
 #include <iostream>
 #include <string>
 #include <algorithm> // Para std::sort ou outras operações de lista
