@@ -2,8 +2,8 @@
 #include <string>
 #include <vector> // Para facilitar a passagem de arrays de string para adicionarFalas
 #include <limits> // Para numeric_limits
-#include <algorithm> // Para std::sort ou outras operações de lista
-include <ifstream>
+#include <algorithm> // Para std::sort ou outras operações de lista 
+#include <ifstream>
 
 // Estrutura para os nós da lista de falas (já existente)
 struct Lista {
@@ -184,49 +184,54 @@ public:
      
         return novo;
     }
-void Cena(){
+    /*
+    void Cena(){
 
-}
-void chamaCena(){
-ofstream arquivoE;
-arquivo.open("arquivoE.txt");
-
-
-arquivoE.close;
-return 0;
-
-}
-    // função construirCenas
-    */ void construirCenas() {
-        // Cena raiz
-        raiz = criarNodo({"Você acorda em uma floresta misteriosa.",
-                         "Dois caminhos se abrem: esquerda e direita."});
-
-        // Esquerda da raiz
-        raiz->op1 = criarNodo({"Você segue pela esquerda e encontra um lago brilhante.",
-                              "Um barulho estranho vem da água."});
-
-        // Direita da raiz
-        raiz->op2 = criarNodo({"Você segue pela direita e encontra uma caverna escura.",
-                              "Uma sombra se move dentro dela."});
-
-        // Filhos da esquerda
-        raiz->op1->op1 = criarNodo({"Você se aproxima do lago e vê uma criatura mágica.",
-                                   "Ela oferece uma poção."});
-
-        raiz->op1->op2 = criarNodo({"Você ignora o lago e continua andando pela mata.",
-                                   "Um grupo de viajantes aparece."});
-
-        // Filhos da direita
-        raiz->op2->op1 = criarNodo({"Você entra na caverna e encontra um baú trancado.",
-                                   "Há símbolos antigos nas paredes."});
-
-        raiz->op2->op2 = criarNodo({"Você contorna a caverna e chega ao topo de uma montanha.",
-                                   "A vista é deslumbrante, mas há uma tempestade se aproximando."});
-        
-        
     }
-*/
+    void chamaCena(){
+    ofstream arquivoE;
+    arquivo.open("arquivoE.txt");
+
+
+    arquivoE.close;
+    return 0;
+
+    }
+
+        */
+        // função construirCenas
+        /*
+    void construirCenas() {
+            // Cena raiz
+            raiz = criarNodo({"Você acorda em uma floresta misteriosa.",
+                            "Dois caminhos se abrem: esquerda e direita."});
+
+            // Esquerda da raiz
+            raiz->op1 = criarNodo({"Você segue pela esquerda e encontra um lago brilhante.",
+                                "Um barulho estranho vem da água."});
+
+            // Direita da raiz
+            raiz->op2 = criarNodo({"Você segue pela direita e encontra uma caverna escura.",
+                                "Uma sombra se move dentro dela."});
+
+            // Filhos da esquerda
+            raiz->op1->op1 = criarNodo({"Você se aproxima do lago e vê uma criatura mágica.",
+                                    "Ela oferece uma poção."});
+
+            raiz->op1->op2 = criarNodo({"Você ignora o lago e continua andando pela mata.",
+                                    "Um grupo de viajantes aparece."});
+
+            // Filhos da direita
+            raiz->op2->op1 = criarNodo({"Você entra na caverna e encontra um baú trancado.",
+                                    "Há símbolos antigos nas paredes."});
+
+            raiz->op2->op2 = criarNodo({"Você contorna a caverna e chega ao topo de uma montanha.",
+                                    "A vista é deslumbrante, mas há uma tempestade se aproximando."});
+            
+            
+        }
+        */ 
+
 
     void exibirCena(Nodo* nodo) {
         Lista* atual = nodo->falas;
@@ -238,7 +243,6 @@ return 0;
 
 
     //  Métodos de Jogo e Menu 
-
     void exibirMenuPrincipal() {
         int escolha;
         do {
@@ -270,6 +274,8 @@ return 0;
                     break;
                 case 0:
                     cout << "Obrigado por jogar! Saindo..." << endl;
+                    destruirArvore(raiz); // Libera a memória da árvore
+                    exit(0); // Encerra o programa
                     break;
                 default:
                     cout << "Opcao invalida. Tente novamente." << endl;
@@ -345,7 +351,7 @@ return 0;
 
                 }
             }
-        }
+        
         // Após o jogo terminar ou o jogador sair
         if (!jogadorAtualNome.empty()) { // Verifica se um nome de jogador foi inserido
             atualizarScore(jogadorAtualNome, vitoria_atual);
@@ -361,10 +367,14 @@ return 0;
         using namespace std;
         int escolha;
         do {
-            cout << "\n--- Fim de Jogo ---" << endl;
-            cout << "1. Jogar Novamente" << endl;
-            cout << "2. Informacoes Tecnicas" << endl;
-            cout << "0. Sair para o Menu Principal" << endl;
+            cout<< "\n--- Fim de Jogo ---" 
+                << "1. Deseja Jogar Novamente?"
+                << "2. Verificar Score"
+                << "0. Fechar o jogo"
+                << ""
+
+            //cout << "3. Informacoes Tecnicas" << endl;
+            //cout << "0. Sair para o Menu Principal" << endl;
             cout << "----------------------" << endl;
             cout << "Escolha uma opcao: ";
             cin >> escolha;
@@ -373,14 +383,24 @@ return 0;
 
             switch (escolha) {
                 case 1:
+                    destruirArvore(raiz); // Libera a memória da árvore
+                    destruirScores(); // Libera a memória dos scores
+                    destruirCenas(raiz); // Libera a memória das cenas, se necessário
+                    cout << "Iniciando um novo jogo..." << endl;
                     jogar(); // Inicia um novo jogo
                     break;
-                case 2:
+                case 0:
+                    cout << "Fechando o jogo. Obrigado por jogar!" << endl;
+                    destruirArvore(raiz); // Libera a memória da árvore
+                    destruirScores(); // Libera a memória dos scores
+                    destruirCenas(raiz); // Libera a memória das cenas
+                    exit(0); // Encerra o programa
+                    break;
+                
+                /*case 2:
                     exibirInformacoesTecnicas();
                     break;
-                case 0:
-                    cout << "Voltando ao Menu Principal..." << endl;
-                    break;
+                */
                 default:
                     cout << "Opcao invalida. Tente novamente." << endl;
             }
@@ -513,17 +533,46 @@ return 0;
     ~Jogo() {
         destruirArvore(raiz);
         destruirScores();
+        destruirCenas(raiz);
+
         //  salvar o destrutor scores no arquivo para garantir que não se percam.
-        // salvarScores(); // se eu quiser salvar ao fechar o programa
+        salvarScores(); // se eu quiser salvar ao fechar o programa
     }
 
-private:
-    void destruirArvore(Nodo* nodo) {
-        if (nodo == nullptr) return;
-        destruirArvore(nodo->op1);
-        destruirArvore(nodo->op2);
+    private:
+        // Funções auxiliares para destruir a árvore e liberar memória
+        void destruirArvore(Nodo* nodo) {
+            if (nodo == nullptr) return;
+            destruirArvore(nodo->op1);
+            destruirArvore(nodo->op2);
 
-        // Libera a lista de falas de cada nodo
+            // Libera a lista de falas de cada nodo
+            Lista* atual = nodo->falas;
+            while (atual != nullptr) {
+                Lista* temp = atual;
+                atual = atual->prox;
+                delete temp;
+            }
+            delete nodo;
+        }
+
+        void destruirScores() {
+            ScoreNode* atual = scoreInicio;
+            while (atual != nullptr) {
+                ScoreNode* temp = atual;
+                atual = atual->prox;
+                delete temp;
+            }
+            scoreInicio = nullptr;
+            scoreFim = nullptr;
+        }
+        destruirCenas(Nodo* nodo){
+            // Implementar a liberação de memória para as cenas, se necessário
+            // Por exemplo, se você tiver uma lista de cenas, libere cada nodo
+            // Aqui, como não temos uma estrutura específica para cenas, deixamos vazio
+        if(nodo == nullptr) return;
+        destruirCenas(nodo->op1);
+        destruirCenas(nodo->op2);
         Lista* atual = nodo->falas;
         while (atual != nullptr) {
             Lista* temp = atual;
@@ -532,25 +581,14 @@ private:
         }
         delete nodo;
     }
-
-    void destruirScores() {
-        ScoreNode* atual = scoreInicio;
-        while (atual != nullptr) {
-            ScoreNode* temp = atual;
-            atual = atual->prox;
-            delete temp;
-        }
-        scoreInicio = nullptr;
-        scoreFim = nullptr;
-    }
-};
+};    
 
 // Funcao main para iniciar o jogo
 int main() {
     Jogo meuJogo;
     meuJogo.construirCenas(); // Popula a arvore de cenas
     meuJogo.exibirMenuPrincipal(); // Inicia o loop principal do menu
-
+    meuJogo.menuPosJogo(); // Exibe o menu pós-jogo após o término do jogo
     return 0;
 }
 //
