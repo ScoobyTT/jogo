@@ -1,3 +1,5 @@
+#ifndef "Ctxt"
+#define "Ctxt"
 #include <iostream>  // Para std::cout, std::cin, std::endl
 #include <string>    // Para std::string, std::getline
 #include <fstream>   // Para std::fstream, std::ios
