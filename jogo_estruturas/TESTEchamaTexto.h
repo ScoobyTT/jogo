@@ -13,7 +13,7 @@ void lerEPrintarLinhaEspecifica(int numeroDaLinhaAlvo) {
     std::fstream arquivoE;
     arquivoE.open("arquivoE.txt", std::ios::in); // Abre o arquivo para leitura
 
-    // **CORREÇÃO:** Bloco if para tratar erro de abertura de arquivo
+    //abertura do arquivo txt
     if (!arquivoE.is_open()) {
         std::cout << "Erro ao abrir o arquivo 'arquivoE.txt'." << std::endl;
         return; // Retorna se o arquivo nao puder ser aberto
