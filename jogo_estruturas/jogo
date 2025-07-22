@@ -226,7 +226,7 @@ public:
 
     arquivoE.close(); // Fecha o arquivo
 
-}
+    }
     Nodo controicena(Nodo* nodo){
         using namespace std;
         int escolha;
@@ -255,9 +255,9 @@ public:
         return *atual; // Retorna o nodo atualizado
     }
 
-}
 
-/*
+
+            /*
             // Cena raiz
             raiz = criarNodo({"Você acorda em uma floresta misteriosa.",
                             "Dois caminhos se abrem: esquerda e direita."});
@@ -605,7 +605,7 @@ public:
             meuJogo.salvarScores(); // Chama a funcao salvarScores do seu objeto Jogo
             std::cout << "Scores salvos com sucesso!" << std::endl;
         } else      cout << "Scores nao salvos." << std::endl;
-}
+    }
     
     
 
