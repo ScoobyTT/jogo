@@ -1,0 +1,733 @@
+#include <iostream>     // Para std::cout, std::cin, std::endl, std::cerr
+#include <string>       // Para std::string, std::getline, std::string::substr
+#include <vector>       // Para std::vector
+#include <limits>       // Para std::numeric_limits (para limpar o buffer do cin)
+#include <fstream>      // Para std::ifstream, std::ofstream, std::ios
+#include <cstdlib>      // Para exit (usado em caso de erro fatal de abertura de arquivo)
+#include <sstream>      // Para std::stringstream (para carregar scores)
+#include <map>          // Para std::map (para carregar cenas do arquivo)
+
+// Usando 'using namespace std;' para simplificar, mas lembre-se que em projetos maiores é bom evitar no .h
+using namespace std;
+
+// --- 1. Estruturas de Dados ---
+
+// Estrutura para o conteúdo de uma cena lida do arquivo (texto, ID)
+struct CenaConteudo {
+    int id;
+    vector<string> linhas; // As linhas de texto desta cena
+};
+
+// Mapa global para armazenar todas as cenas carregadas do arquivo "arquivoE.txt".
+// Isso permite que o jogo acesse o conteúdo de qualquer cena rapidamente pelo seu ID.
+map<int, CenaConteudo> g_mapa_cenas_carregadas;
+
+// Estrutura para o nó da árvore de decisão do jogo.
+// Cada Nodo aponta para um ID de cena e tem ponteiros para as opções de navegação.
+struct Nodo {
+    int id_cena;    // O ID da cena associada a este nó (referencia g_mapa_cenas_carregadas)
+    Nodo* op1;      // Ponteiro para a opção 1 (filho esquerdo)
+    Nodo* op2;      // Ponteiro para a opção 2 (filho direito)
+
+    // Construtor para inicializar um Nodo
+    Nodo(int cena_id_val) : id_cena(cena_id_val), op1(nullptr), op2(nullptr) {}
+};
+
+// Estrutura para armazenar o score de um jogador
+struct JogadorScore { // Corrigido para JogadorScore (capitalizado)
+    string nome;
+    int total_jogos;
+    int vitorias;
+    int derrotas;
+};
+
+// Nó para a lista duplamente encadeada de scores
+struct ScoreNodo {
+    JogadorScore jogador;
+    ScoreNodo* prox;
+    ScoreNodo* ant;
+};
+
+// --- 2. Funções Auxiliares Globais (usadas pela classe Jogo) ---
+
+// Extrai o ID de uma linha no formato "[ID:X]". Retorna -1 se não encontrar ou for inválido.
+int extrairIdDaLinha(const string& linha) {
+    size_t pos_id = linha.find("[ID:");
+    if (pos_id != string::npos) {
+        size_t pos_fechar_colchete = linha.find("]", pos_id);
+        if (pos_fechar_colchete != string::npos && pos_fechar_colchete > pos_id + 4) {
+            string id_str = linha.substr(pos_id + 4, pos_fechar_colchete - (pos_id + 4));
+            try {
+                return stoi(id_str); // Converte a string para int
+            } catch (const invalid_argument& e) {
+                // Erro de conversão (ID não numérico)
+            }
+        }
+    }
+    return -1; // ID inválido ou não encontrado
+}
+
+// Carrega todas as cenas do arquivo de texto para o mapa global 'g_mapa_cenas_carregadas'.
+// Deve ser chamada APENAS UMA VEZ no início do programa.
+void carregarTodasAsCenasDoArquivo(const string& nome_arquivo) {
+    ifstream arquivo(nome_arquivo);
+    if (!arquivo.is_open()) {
+        cerr << "Erro fatal: Nao foi possivel abrir o arquivo '" << nome_arquivo << "' para carregar as cenas." << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    string linha;
+    int id_atual = -1;
+    while (getline(arquivo, linha)) {
+        int novo_id = extrairIdDaLinha(linha);
+        if (novo_id != -1) { // Se a linha indica um novo ID de cena
+            id_atual = novo_id;
+            g_mapa_cenas_carregadas[id_atual].id = id_atual; // Cria/acessa a Cena no mapa
+        } else if (id_atual != -1) { // Se já estamos lendo o conteúdo de uma cena
+            g_mapa_cenas_carregadas[id_atual].linhas.push_back(linha);
+        }
+    }
+    arquivo.close();
+    cout << "Cenas carregadas do arquivo '" << nome_arquivo << "' (" << g_mapa_cenas_carregadas.size() << " cenas).\n";
+}
+
+// Exibe o conteúdo completo de uma cena buscando-a pelo seu ID no mapa global.
+void exibirCenaCompletaPorId(int id_cena) {
+    auto it = g_mapa_cenas_carregadas.find(id_cena);
+    if (it == g_mapa_cenas_carregadas.end()) {
+        cerr << "ERRO: Conteudo da cena com ID " << id_cena << " nao encontrado no mapa de cenas carregadas." << endl;
+        return;
+    }
+
+    const CenaConteudo& cena = it->second;
+    for (const string& linha : cena.linhas) {
+        if (!linha.empty() && linha[0] == '@') {
+            cout << "FALA: " << linha.substr(1) << endl;
+        } else if (linha == "---") {
+            cout << "\n-----------------------------------------\n" << endl;
+        } else {
+            cout << linha << endl;
+        }
+    }
+}
+
+// Cria um novo nó da árvore. Verifica se o ID da cena associada existe.
+Nodo* criarNovoNo(int id_cena_associada) {
+    if (g_mapa_cenas_carregadas.find(id_cena_associada) == g_mapa_cenas_carregadas.end()) {
+        cerr << "AVISO: Criando Nodo para Cena ID " << id_cena_associada << " que NAO EXISTE no arquivo de cenas carregado!\n";
+    }
+    return new Nodo(id_cena_associada);
+}
+
+// --- 3. Classe Jogo ---
+
+class Jogo {
+private:
+    Nodo* raiz;             // Raiz da árvore de decisão do jogo
+    ScoreNodo* scoreInicio; // Início da lista de scores
+    ScoreNodo* scoreFim;    // Fim da lista de scores
+    string jogadorAtualNome; // Nome do jogador que está jogando a partida atual
+
+    // Funções auxiliares privadas para gerenciamento de memória e scores
+    void destruirArvore(Nodo* nodo) {
+        if (nodo == nullptr) return;
+        destruirArvore(nodo->op1);
+        destruirArvore(nodo->op2);
+        delete nodo; // Libera o próprio nó
+    }
+
+    void destruirScores() {
+        ScoreNodo* atual = scoreInicio;
+        while (atual != nullptr) {
+            ScoreNodo* temp = atual;
+            atual = atual->prox;
+            delete temp;
+        }
+        scoreInicio = nullptr;
+        scoreFim = nullptr;
+    }
+
+    // A função destruirCenas() foi removida.
+    // O mapa g_mapa_cenas_carregadas gerencia a memória das CenaConteudo e será liberado automaticamente.
+
+    // Salva os scores para um arquivo de texto
+    void salvarScores() {
+        ofstream arquivo("scores.txt");
+        if (!arquivo.is_open()) {
+            cout << "Erro ao abrir o arquivo 'scores.txt' para salvar scores." << endl;
+            return;
+        }
+
+        ScoreNodo* atual = scoreInicio;
+        while (atual != nullptr) {
+            arquivo << atual->jogador.nome << ","
+                    << atual->jogador.total_jogos << ","
+                    << atual->jogador.vitorias << ","
+                    << atual->jogador.derrotas << endl;
+            atual = atual->prox;
+        }
+        arquivo.close();
+        cout << "(Scores salvos em 'scores.txt')" << endl;
+    }
+
+    // Carrega os scores de um arquivo de texto
+    void carregarScores() {
+        ifstream arquivo("scores.txt");
+        if (!arquivo.is_open()) {
+            cout << "(Nenhum arquivo 'scores.txt' encontrado ou erro ao abrir. Iniciando sem scores anteriores.)" << endl;
+            return;
+        }
+
+        string linha;
+        while (getline(arquivo, linha)) {
+            stringstream ss(linha);
+            string item;
+            JogadorScore novoJogador;
+
+            getline(ss, item, ',');
+            novoJogador.nome = item;
+            getline(ss, item, ',');
+            novoJogador.total_jogos = stoi(item);
+            getline(ss, item, ',');
+            novoJogador.vitorias = stoi(item);
+            getline(ss, item, ',');
+            novoJogador.derrotas = stoi(item);
+
+            // Adiciona o score carregado à lista em memória.
+            // A função 'adicionarScore' já cuida da ordenação.
+            adicionarScore(novoJogador);
+        }
+        arquivo.close();
+        cout << "(Scores carregados de 'scores.txt')" << endl;
+    }
+
+    // Função interna que executa o jogo cena por cena
+    void jogarCena(Nodo* nodo_atual) {
+        if (nodo_atual == nullptr) {
+            cout << "--- FIM DE UM CAMINHO NA HISTORIA ---" << endl;
+            return; // Encerra a recursão para este caminho
+        }
+
+        // 1. Exibir a cena atual
+        cout << "\n--- CENARIO ATUAL (ID: " << nodo_atual->id_cena << ") ---\n";
+        exibirCenaCompletaPorId(nodo_atual->id_cena); // Usa a função global para exibir o conteúdo
+        cout << "-----------------------------------------\n";
+
+        // 2. Verificar se este nó é um final de caminho (não tem mais opções)
+        if (nodo_atual->op1 == nullptr && nodo_atual->op2 == nullptr) {
+            cout << "Esta e uma cena final. Nao ha mais opcoes aqui. A jornada termina." << endl;
+            // Atualizar score para um "fim de jogo" sem vitória/derrota explícita
+            // ou você pode ter IDs de cena específicos para vitória/derrota
+            // Para este exemplo, vou considerar um "fim" como derrota para atualizar score.
+            cout << "Voce chegou ao fim da linha, " << jogadorAtualNome << ". Foi uma aventura!" << endl;
+            atualizarScore(jogadorAtualNome, false); // Exemplo: considera como derrota
+            return; // Termina o jogo para este jogador
+        }
+
+        // 3. Obter a escolha do usuário
+        int escolha;
+        while (true) {
+            cout << "\nEscolha seu proximo passo:\n";
+            if (nodo_atual->op1 != nullptr) {
+                cout << "1. Seguir Opcao 1 (Cena ID: " << nodo_atual->op1->id_cena << ")\n";
+            }
+            if (nodo_atual->op2 != nullptr) {
+                cout << "2. Seguir Opcao 2 (Cena ID: " << nodo_atual->op2->id_cena << ")\n";
+            }
+            cout << "Sua escolha: ";
+
+            cin >> escolha;
+
+            if (cin.fail()) {
+                cout << "Entrada invalida. Por favor, digite um numero (1 ou 2).\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                continue;
+            }
+
+            if (escolha == 1 && nodo_atual->op1 != nullptr) {
+                jogarCena(nodo_atual->op1); // Chama recursivamente para a próxima cena
+                return; // Retorna após a chamada recursiva para evitar processamento adicional
+            } else if (escolha == 2 && nodo_atual->op2 != nullptr) {
+                jogarCena(nodo_atual->op2); // Chama recursivamente para a próxima cena
+                return; // Retorna após a chamada recursiva
+            } else {
+                cout << "Opcao " << escolha << " invalida ou nao disponivel para este caminho. Tente novamente.\n";
+            }
+        }
+    }
+
+    // Módulos de texto
+    void mostrarHistoria() {
+        cout << "\n--- Historia do Jogo ---" << endl;
+        cout << "Este e um jogo de aventura onde suas escolhas moldam seu destino." << endl;
+        cout << "Voce acorda em um local misterioso e deve navegar por caminhos perigosos." << endl;
+        cout << "Cada decisao pode levar a uma vitoria gloriosa ou a uma derrota inesperada." << endl;
+        cout << "Boa sorte, aventureiro!" << endl;
+        cout << "Pressione Enter para voltar ao menu...";
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+
+    void mostrarRegras() {
+        cout << "\n--- Regras do Jogo ---" << endl;
+        cout << "1. Voce sera apresentado a diferentes cenarios." << endl;
+        cout << "2. Em cada cenario, tera opcoes numeradas (1, 2, etc.)." << endl;
+        cout << "3. Digite o numero da opcao desejada e pressione Enter." << endl;
+        cout << "4. Suas escolhas determinarao o proximo cenario e o desfecho da historia." << endl;
+        cout << "5. O objetivo e alcancar um final de vitoria (se houver)!" << endl;
+        cout << "Pressione Enter para voltar ao menu...";
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+
+public:
+    // Construtor da classe Jogo
+    Jogo() : raiz(nullptr), scoreInicio(nullptr), scoreFim(nullptr) {
+        carregarScores(); // Tenta carregar scores existentes ao iniciar o jogo
+    }
+
+    // Destrutor da classe Jogo (libera toda a memória alocada)
+    ~Jogo() {
+        salvarScores();     // Salva os scores antes de sair
+        destruirArvore(raiz); // Libera a memória da árvore de decisão
+        destruirScores();   // Libera a memória da lista de scores
+        // g_mapa_cenas_carregadas é global e será liberado automaticamente
+    }
+
+    // --- Métodos de Score ---
+    void adicionarScore(const JogadorScore& novoJogador) {
+        // Primeiro, verifica se o jogador já existe para não duplicar entradas.
+        // Isso é importante, especialmente ao carregar scores do arquivo.
+        ScoreNodo* atual_check = scoreInicio;
+        while (atual_check != nullptr) {
+            if (atual_check->jogador.nome == novoJogador.nome) {
+                // Se o jogador já existe, não adiciona novamente por aqui.
+                // A atualização de score é feita por 'atualizarScore'.
+                return;
+            }
+            atual_check = atual_check->prox;
+        }
+
+        ScoreNodo* novaNodo = new ScoreNodo{novoJogador, nullptr, nullptr};
+
+        if (scoreInicio == nullptr) { // Lista vazia
+            scoreInicio = novaNodo;
+            scoreFim = novaNodo;
+        } else {
+            // Insercao ordenada por vitorias (decrescente).
+            // Se vitorias iguais, ordena por total_jogos (crescente) ou nome (alfabético).
+            ScoreNodo* atual = scoreInicio;
+            while (atual != nullptr &&
+                   (novoJogador.vitorias < atual->jogador.vitorias ||
+                   (novoJogador.vitorias == atual->jogador.vitorias && novoJogador.total_jogos > atual->jogador.total_jogos) ||
+                   (novoJogador.vitorias == atual->jogador.vitorias && novoJogador.total_jogos == atual->jogador.total_jogos && novoJogador.nome > atual->jogador.nome))) {
+                atual = atual->prox;
+            }
+
+            if (atual == nullptr) { // Inserir no fim
+                scoreFim->prox = novaNodo;
+                novaNodo->ant = scoreFim;
+                scoreFim = novaNodo;
+            } else if (atual == scoreInicio) { // Inserir no inicio
+                novaNodo->prox = scoreInicio;
+                scoreInicio->ant = novaNodo;
+                scoreInicio = novaNodo;
+            } else { // Inserir no meio
+                novaNodo->prox = atual;
+                novaNodo->ant = atual->ant;
+                atual->ant->prox = novaNodo;
+                atual->ant = novaNodo;
+            }
+        }
+        // Salvamento automático foi movido para o destrutor ou para a saída do jogo.
+        // salvarScores(); // Não salva a cada adição, apenas ao sair ou explicitamente.
+    }
+
+    void atualizarScore(const string& nomeJogador, bool venceu) {
+        ScoreNodo* atual = scoreInicio;
+        while (atual != nullptr) {
+            if (atual->jogador.nome == nomeJogador) {
+                // Remove o nó existente para reordená-lo
+                JogadorScore tempJogador = atual->jogador; // Salva os dados
+                removerScoreNodo(atual); // Remove o nó antigo
+                
+                tempJogador.total_jogos++;
+                if (venceu) {
+                    tempJogador.vitorias++;
+                } else {
+                    tempJogador.derrotas++;
+                }
+                adicionarScore(tempJogador); // Adiciona de volta com os dados atualizados (reordenará)
+                return;
+            }
+            atual = atual->prox;
+        }
+
+        // Se o jogador não foi encontrado, cria um novo score
+        JogadorScore novo = {nomeJogador, 1, (venceu ? 1 : 0), (venceu ? 0 : 1)};
+        adicionarScore(novo);
+    }
+
+    void removerScoreNodo(ScoreNodo* nodoToRemove) {
+        if (nodoToRemove == nullptr) return;
+
+        if (nodoToRemove->ant) {
+            nodoToRemove->ant->prox = nodoToRemove->prox;
+        } else { // Era o inicio
+            scoreInicio = nodoToRemove->prox;
+        }
+
+        if (nodoToRemove->prox) {
+            nodoToRemove->prox->ant = nodoToRemove->ant;
+        } else { // Era o fim
+            scoreFim = nodoToRemove->ant;
+        }
+        delete nodoToRemove;
+    }
+
+    void verificarScore() {
+        cout << "\n--- Score dos Jogadores ---" << endl;
+        if (scoreInicio == nullptr) {
+            cout << "Nenhum score registrado ainda." << endl;
+        } else {
+            ScoreNodo* atual = scoreInicio;
+            int rank = 1;
+            while (atual != nullptr) {
+                cout << rank << ". Nome: " << atual->jogador.nome
+                     << " | Jogos: " << atual->jogador.total_jogos
+                     << " | Vitorias: " << atual->jogador.vitorias
+                     << " | Derrotas: " << atual->jogador.derrotas << endl;
+                atual = atual->prox;
+                rank++;
+            }
+        }
+        cout << "Pressione Enter para voltar ao menu..." << endl;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+
+    // --- Métodos da Árvore de Decisão ---
+
+    // Função para construir a estrutura da sua árvore de decisão.
+    // Você vai precisar expandir e personalizar esta função para sua história.
+    void construirArvoreDeExemplo() {
+        cout << "Construindo a estrutura da arvore de decisao (exemplo hardcoded para 6 niveis)...\n";
+
+        // Nível 0 (Raiz da árvore - Início da história)
+        raiz = criarNovoNo(1); // O jogo começa na Cena com ID 1
+
+        // Nível 1
+        raiz->op1 = criarNovoNo(2); // Se o jogador escolher 1 na Cena 1, vai para a Cena 2
+        raiz->op2 = criarNovoNo(3); // Se o jogador escolher 2 na Cena 1, vai para a Cena 3
+
+        // Nível 2
+        raiz->op1->op1 = criarNovoNo(4);
+        raiz->op1->op2 = criarNovoNo(5);
+        raiz->op2->op1 = criarNovoNo(6);
+        raiz->op2->op2 = criarNovoNo(7);
+
+        // Nível 3
+        raiz->op1->op1->op1 = criarNovoNo(8);  // Caminho 1.1.1 (vai para Cena ID 8)
+        raiz->op1->op1->op2 = criarNovoNo(9);  // Caminho 1.1.2 (vai para Cena ID 9)
+        raiz->op1->op2->op1 = criarNovoNo(10); // Caminho 1.2.1 (vai para Cena ID 10)
+        raiz->op1->op2->op2 = criarNovoNo(11); // Caminho 1.2.2 (vai para Cena ID 11)
+        raiz->op2->op1->op1 = criarNovoNo(12); // Caminho 2.1.1 (vai para Cena ID 12)
+        raiz->op2->op1->op2 = criarNovoNo(13); // Caminho 2.1.2 (vai para Cena ID 13)
+        raiz->op2->op2->op1 = criarNovoNo(14); // Caminho 2.2.1 (vai para Cena ID 14)
+        raiz->op2->op2->op2 = criarNovoNo(15); // Caminho 2.2.2 (vai para Cena ID 15)
+
+        // --- EXPANDINDO UM CAMINHO PARA ATINGIR OS 6 NÍVEIS MÍNIMOS ---
+        // Você precisa garantir que pelo menos um caminho desde a raiz tenha 6 nós (6 níveis de profundidade).
+        // Vou continuar o caminho que começa em 'raiz->op1->op1->op1' (Cena ID 8)
+
+        // Nível 4 (Continuando do Nível 3, a partir da Cena ID 8)
+        if (raiz->op1->op1->op1 != nullptr) { // Verifica se o nó pai existe antes de adicionar filhos
+            raiz->op1->op1->op1->op1 = criarNovoNo(16); // Cena ID 16
+            raiz->op1->op1->op1->op2 = criarNovoNo(17); // Cena ID 17
+        }
+
+        // Nível 5 (Continuando do Nível 4)
+        if (raiz->op1->op1->op1->op1 != nullptr) {
+            raiz->op1->op1->op1->op1->op1 = criarNovoNo(18); // Cena ID 18
+            raiz->op1->op1->op1->op1->op2 = criarNovoNo(19); // Cena ID 19
+        }
+
+        // Nível 6 (Atingindo a profundidade mínima necessária)
+        if (raiz->op1->op1->op1->op1->op1 != nullptr) {
+            raiz->op1->op1->op1->op1->op1->op1 = criarNovoNo(20); // Cena ID 20 (Este é um nó que está no Nível 6)
+            // Se a Cena 20 for um final de história, não adicione mais filhos.
+            // Se a história continua, você pode adicionar um segundo filho aqui também:
+            // raiz->op1->op1->op1->op1->op1->op2 = criarNovoNo(21); // Cena ID 21
+        }
+        // Lembre-se de adicionar nós correspondentes no seu 'arquivoE.txt' para todos esses IDs.
+        // Sinta-se à vontade para criar outros caminhos que também atinjam ou excedam 6 níveis,
+        // ou que sejam mais curtos e levem a finais de jogo distintos.
+
+        cout << "Estrutura da arvore construida. Raiz ID: " << raiz->id_cena << endl;
+    }
+
+    // --- Métodos de Jogo e Menu ---
+    // Exibe o menu principal do jogo
+    void exibirMenuPrincipal() {
+        int escolha;
+        do {
+            cout << "\n=== JOGO-ED1: Uma Aventura com Arvores de Decisao ===" << endl
+                 << "1. Conhecer a Historia do Jogo" << endl
+                 << "2. Regras do Jogo" << endl
+                 << "3. Jogar" << endl
+                 << "4. Verificar Score" << endl
+                 << "5. Informacoes Tecnicas" << endl // Re-adicionei esta opção para o menu
+                 << "0. Sair" << endl
+                 << "-----------------------------------------------------" << endl
+                 << "Escolha uma opcao: ";
+            cin >> escolha;
+
+            // Limpa o buffer do teclado
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            switch (escolha) {
+                case 1:
+                    mostrarHistoria();
+                    break;
+                case 2:
+                    mostrarRegras();
+                    break;
+                case 3:
+                    jogar(); // Chama a função que inicia um novo jogo
+                    break;
+                case 4:
+                    verificarScore();
+                    break;
+                case 5:
+                    exibirInformacoesTecnicas(); // Chama o submenu de informações técnicas
+                    break;
+                case 0:
+                    cout << "Obrigado por jogar! Saindo..." << endl;
+                    gerenciarSaida(); // Pergunta se quer salvar antes de sair
+                    return; // Sai do menu principal
+                default:
+                    cout << "Opcao invalida. Tente novamente." << endl;
+            }
+        } while (escolha != 0);
+    }
+
+    // Inicia um novo jogo. Obtém o nome do jogador e começa a navegação na árvore.
+    void jogar() {
+        cout << "\n--- Iniciar Novo Jogo ---" << endl;
+        cout << "Qual o seu nome, aventureiro? ";
+        getline(cin, jogadorAtualNome);
+
+        if (raiz == nullptr) {
+            cout << "Erro: A arvore de decisao nao foi construida. Nao eh possivel iniciar o jogo." << endl;
+            return;
+        }
+
+        // Inicia a navegação pela árvore a partir do nó raiz
+        jogarCena(raiz);
+
+        // Após o 'jogarCena' retornar (o jogo ter terminado por um caminho), exibe o menu pós-jogo.
+        exibirMenuPosJogo();
+    }
+
+    // Menu Pós-Jogo (exibido após uma partida terminar)
+    void exibirMenuPosJogo() {
+        int escolha;
+        do {
+            cout << "\n--- Fim de Jogo ---" << endl
+                 << "1. Jogar Novamente?" << endl
+                 << "2. Verificar Score" << endl
+                 << "0. Sair para o Menu Principal" << endl // Mudei para voltar ao menu principal
+                 << "----------------------" << endl
+                 << "Escolha uma opcao: ";
+            cin >> escolha;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            switch (escolha) {
+                case 1:
+                    // Se o jogador quer jogar novamente, ele começa um novo jogo.
+                    // A memória da árvore anterior será limpa no destrutor quando o objeto Jogo for destruído ou
+                    // você pode chamar 'destruirArvore(raiz); raiz = nullptr;' aqui e depois 'construirArvoreDeExemplo();'
+                    // para reiniciar a árvore. Por simplicidade, farei no 'main' que o Jogo será recriado.
+                    cout << "Iniciando um novo jogo..." << endl;
+                    jogar(); // Chama jogar novamente para iniciar um novo ciclo
+                    return; // Sai deste menu para o novo jogo
+                case 2:
+                    verificarScore();
+                    break;
+                case 0:
+                    cout << "Voltando ao Menu Principal..." << endl;
+                    return; // Retorna para o menu principal
+                default:
+                    cout << "Opcao invalida. Tente novamente." << endl;
+            }
+        } while (escolha != 0);
+    }
+
+    // Menu de Informações Técnicas
+    void exibirInformacoesTecnicas() {
+        int escolha;
+        do {
+            cout << "\n--- Informacoes Tecnicas ---" << endl
+                 << "1. Mostrar a lista de cenas do arquivo (nao do Nodo)" << endl
+                 << "2. Listar a arvore em ordem (percurso)" << endl
+                 << "3. Buscar estatisticas de jogo por nome/numero de jogos" << endl
+                 << "0. Voltar ao menu anterior" << endl
+                 << "----------------------------" << endl
+                 << "Escolha uma opcao: ";
+            cin >> escolha;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            switch (escolha) {
+                case 1:
+                    cout << "\n--- Cenas Carregadas do Arquivo ---" << endl;
+                    if (g_mapa_cenas_carregadas.empty()) {
+                        cout << "Nenhuma cena carregada." << endl;
+                    } else {
+                        for (const auto& pair : g_mapa_cenas_carregadas) {
+                            cout << "ID: " << pair.first << " - Linhas: " << pair.second.linhas.size() << endl;
+                            // Opcional: exibir algumas linhas da cena
+                            // if (!pair.second.linhas.empty()) {
+                            //     cout << "  Primeira linha: " << pair.second.linhas[0].substr(0, 50) << "..." << endl;
+                            // }
+                        }
+                    }
+                    break;
+                case 2:
+                    cout << "\n--- Listando Arvore em Ordem (Pre-ordem) ---" << endl;
+                    if (raiz) {
+                        listarArvoreEmOrdem(raiz); // Inicia o percurso
+                    } else {
+                        cout << "Arvore nao construida." << endl;
+                    }
+                    break;
+                case 3:
+                    buscarEstatisticas();
+                    break;
+                case 0:
+                    cout << "Voltando..." << endl;
+                    break;
+                default:
+                    cout << "Opcao invalida. Tente novamente." << endl;
+            }
+            cout << "Pressione Enter para continuar..." << endl;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        } while (escolha != 0);
+    }
+
+    // Percurso em pré-ordem para listar a árvore
+    void listarArvoreEmOrdem(Nodo* nodo) {
+        if (nodo == nullptr) {
+            return;
+        }
+        // Exibe o ID da cena do nó atual
+        cout << "Nodo ID Cena: " << nodo->id_cena;
+        
+        // Opcional: Exibir a primeira linha da cena para dar contexto
+        auto it = g_mapa_cenas_carregadas.find(nodo->id_cena);
+        if (it != g_mapa_cenas_carregadas.end() && !it->second.linhas.empty()) {
+            cout << " (\"" << it->second.linhas[0].substr(0, min(it->second.linhas[0].length(), (size_t)50)) << "...\")";
+        }
+        cout << endl;
+
+        listarArvoreEmOrdem(nodo->op1); // Visita a subárvore esquerda
+        listarArvoreEmOrdem(nodo->op2); // Visita a subárvore direita
+    }
+
+    void buscarEstatisticas() {
+        int escolha;
+        cout << "\n--- Buscar Estatisticas ---" << endl
+             << "1. Buscar por nome do jogador" << endl
+             << "2. Buscar por numero de vitorias (Minimo)" << endl
+             << "0. Voltar" << endl
+             << "Escolha uma opcao: ";
+
+        cin >> escolha;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Limpa buffer
+
+        switch (escolha) {
+            case 1: {
+                string nomeBusca;
+                cout << "Digite o nome do jogador: ";
+                getline(cin, nomeBusca);
+                ScoreNodo* atual = scoreInicio;
+                bool encontrado = false;
+                while (atual != nullptr) {
+                    if (atual->jogador.nome == nomeBusca) {
+                        cout << "Nome: " << atual->jogador.nome
+                             << " | Jogos: " << atual->jogador.total_jogos
+                             << " | Vitorias: " << atual->jogador.vitorias
+                             << " | Derrotas: " << atual->jogador.derrotas << endl;
+                        encontrado = true;
+                        break;
+                    }
+                    atual = atual->prox;
+                }
+                if (!encontrado) {
+                    cout << "Jogador '" << nomeBusca << "' nao encontrado." << endl;
+                }
+                break;
+            }
+            case 2: { // Buscar jogadores com X ou mais vitórias
+                int minVitorias;
+                cout << "Digite o numero minimo de vitorias: ";
+                cin >> minVitorias;
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                ScoreNodo* atual = scoreInicio;
+                bool encontrado = false;
+                cout << "Jogadores com " << minVitorias << " ou mais vitorias:" << endl;
+                while (atual != nullptr) {
+                    if (atual->jogador.vitorias >= minVitorias) {
+                        cout << "Nome: " << atual->jogador.nome
+                             << " | Jogos: " << atual->jogador.total_jogos
+                             << " | Vitorias: " << atual->jogador.vitorias
+                             << " | Derrotas: " << atual->jogador.derrotas << endl;
+                        encontrado = true;
+                    }
+                    atual = atual->prox;
+                }
+                if (!encontrado) {
+                    cout << "Nenhum jogador encontrado com essa quantidade de vitorias." << endl;
+                }
+                break;
+            }
+            case 0:
+                break;
+            default:
+                cout << "Opcao invalida." << endl;
+        }
+    }
+
+    // Gerencia a saída do programa, perguntando se o usuário deseja salvar.
+    void gerenciarSaida() {
+        int escolhaSalvar;
+        cout << "Deseja salvar seu progresso antes de sair?\n"
+             << "1. Sim\n"
+             << "2. Nao\n"
+             << "Escolha: ";
+        cin >> escolhaSalvar;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        if (escolhaSalvar == 1) {
+            salvarScores();
+            cout << "Scores salvos com sucesso!" << endl;
+        } else {
+            cout << "Scores nao salvos." << endl;
+        }
+    }
+};
+
+// --- 4. Função Principal (main) ---
+
+int main() {
+    //Carregar todas as cenas do arquivo de texto ANTES de criar o objeto Jogo.
+    // 
+    carregarTodasAsCenasDoArquivo("arquivoE.txt");
+
+    // 2. Cria uma instância do jogo. O construtor de 'Jogo' irá carregar os scores e construir a árvore.
+    Jogo meuJogo;
+    meuJogo.construirArvoreDeExemplo(); // Popula a arvore de cenas
+
+    // 3. Inicia o loop principal do menu do jogo.
+    meuJogo.exibirMenuPrincipal(); 
+    meuJogo.m
+    // O programa terminará aqui, e o destrutor de 'meuJogo' será chamado, liberando a memória.
+    return 0;
+}
