@@ -34,11 +34,11 @@ struct Cena {
 #include <fstream>
 // Não precisamos mais de "historiaa.h" se Cena estiver definida acima e não houver outros itens lá.
 
-using namespace std;
 
 // Estrutura para o score do jogador
 struct jogadorScore {
-    string nome;
+
+   std:: string nome;
     int total_jogos;
     int vitorias;
     int derrotas;
@@ -53,10 +53,11 @@ struct ScoreNodo {
 
 class Jogo {
 private:
+
     Cena* raizCena;          // Raiz da árvore de cenas do jogo (usando Cena)
     ScoreNodo* scoreInicio;  // Início da lista de scores
     ScoreNodo* scoreFim;     // Fim da lista de scores
-    string jogadorAtualNome; // Nome do jogador atual
+    std::string jogadorAtualNome; // Nome do jogador atual
 
 public:
     // Construtor
@@ -147,7 +148,7 @@ public:
         Cena* c18 = new Cena(
             "Você implora ajuda à onça. Ela sente pena, entra no buraco e te carrega pra fora. Você está salvo!",
             "", "", true, false // Final de vitória
-        );      
+        );
 
         // Ligando as cenas (construindo a árvore)
         c1->op1 = c2;
@@ -181,6 +182,8 @@ public:
 
     // Função para rodar a narrativa do jogo (agora usa Cena*)
     void jogarCena(Cena* atual) {
+        using namespace std;
+
         while (atual != nullptr) {
             cout << "\n" << atual->texto << "\n";
 
@@ -227,6 +230,8 @@ public:
 
     // Métodos de Score
     void carregarScores() {
+        using namespace std;
+
         ifstream arquivo("scores.txt");
         if (!arquivo.is_open()) {
             cout << "(Arquivo de scores não encontrado ou erro ao abrir. Criando um novo.)" << endl;
@@ -296,7 +301,7 @@ public:
         }
     }
 
-    void atualizarScore(const string& nomeJogador, bool venceu) {
+    void atualizarScore(const std::string& nomeJogador, bool venceu) {
         ScoreNodo* atual = scoreInicio;
         while (atual != nullptr) {
             if (atual->jogador.nome == nomeJogador) {
@@ -338,6 +343,8 @@ public:
     }
 
     void verificarScore() {
+        using namespace std;
+
         cout << "\n--- Score dos Jogadores ---" << endl;
         if (scoreInicio == nullptr) {
             cout << "Nenhum score registrado ainda." << endl;
@@ -362,6 +369,8 @@ public:
 
     // Métodos de Jogo e Menu
     void exibirMenuPrincipal() {
+        using namespace std;
+
         int escolha;
         do {
             cout << "\n=== JOGO-ED1: Uma Aventura com Árvores de Decisão ===" << endl
@@ -409,6 +418,8 @@ public:
     }
 
     void mostrarHistoria() {
+        using namespace std;
+
         cout << "\n--- História do Jogo ---" << endl;
         cout << "Este é um jogo de aventura onde suas escolhas moldam seu destino." << endl;
         cout << "Você acorda em um local misterioso e deve navegar por caminhos perigosos." << endl;
@@ -419,6 +430,8 @@ public:
     }
 
     void mostrarRegras() {
+        using namespace std;
+
         cout << "\n--- Regras do Jogo ---" << endl;
         cout << "1. Leia atentamente a descrição de cada cena." << endl;
         cout << "2. Escolha entre as opções disponíveis (geralmente 1 ou 2)." << endl;
@@ -430,6 +443,8 @@ public:
 
     // Menu Pós-Jogo
     void exibirMenuPosJogo() {
+        using namespace std;
+
         int escolha;
         do {
             cout << "\n--- Fim de Jogo ---" << endl;
@@ -463,6 +478,8 @@ public:
 
     // Menu de Informações Técnicas
     void exibirInformacoesTecnicas() {
+        using namespace std;
+
         int escolha;
         do {
             cout << "\n--- Informações Técnicas ---" << endl;
@@ -505,6 +522,8 @@ public:
 
     // Função recursiva para percorrer e listar as cenas em Pre-Ordem (adaptado para Cena*)
     void listarCenasEmOrdem(Cena* cena) {
+        using namespace std;
+
         if (cena == nullptr) return;
 
         cout << "Cena: ";
@@ -523,6 +542,8 @@ public:
     }
 
     void buscarEstatisticas() {
+        using namespace std;
+
         cout << "\n--- Buscar Estatísticas ---" << endl;
         cout << "1. Buscar por nome do jogador" << endl;
         cout << "2. Buscar por número de vitórias (Mínimo)" << endl;
@@ -587,6 +608,8 @@ public:
     }
 
     void gerenciarSaida() {
+        using namespace std;
+
         int escolhaSalvar;
         cout << "Deseja salvar seu progresso antes de sair?" << endl;
         cout << "1. Sim" << endl;
@@ -612,6 +635,8 @@ public:
 private:
     // Funções auxiliares para destruir a árvore de cenas e liberar memória
     void destruirCenas(Cena* cena) {
+        using namespace std;
+
         if (cena == nullptr) return;
         destruirCenas(cena->op1);
         destruirCenas(cena->op2);
@@ -630,6 +655,8 @@ private:
     }
 
     void salvarScores() {
+        using namespace std;
+
         ofstream arquivo("scores.txt");
         if (!arquivo.is_open()) {
             cout << "Erro ao abrir o arquivo para salvar scores." << endl;
